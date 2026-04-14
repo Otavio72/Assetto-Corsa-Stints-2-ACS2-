@@ -18,8 +18,11 @@ while True:
     arquivos = [f for f in os.listdir(caminho_jogo) if f.endswith(".csv")]
 
     for arquivo in arquivos:
+        if arquivo == "PitstopData.csv" or arquivo == "TyreInformationData.csv" or arquivo == "DriversTimingInformationData.csv":
+            continue
+
         origem = os.path.join(caminho_jogo, arquivo)
-        
+            
         # Criamos um nome com timestamp para não sobrescrever o anterior no seu projeto
         novo_nome = f"{int(time.time())}_{arquivo}"
         destino = os.path.join(caminho_projeto, novo_nome)
