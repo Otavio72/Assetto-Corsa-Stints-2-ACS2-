@@ -1,6 +1,40 @@
 import socket
 import struct
-import time
+
+
+def processar_handshake(data):
+    if len(data) != 408:
+        print(f"⚠️ Pacote inesperado: {len(data)} bytes")
+        return
+
+    # Formato: 100 bytes string, 100 bytes string, int, int, 100 bytes string, 100 bytes string
+    # '<' = Little Endian
+    # '100s' = String de 100 bytes
+    # 'i' = Inteiro de 4 bytes
+    formato = '<100s100sii100s100s'
+    
+    unpacked = struct.unpack(formato, data)
+    
+    # Função interna para limpar o lixo do UTF-16
+    def limpar(texto_bruto):
+        return texto_bruto.decode('utf-16-le', errors='ignore').split('\x00')[0].strip()
+
+    info = {
+        "carro":  limpar(unpacked[0]),
+        "piloto": limpar(unpacked[1]),
+        "id":     unpacked[2],
+        "ver":    unpacked[3],
+        "pista":  limpar(unpacked[4]),
+        "layout": limpar(unpacked[5])
+    }
+    
+    print("\n🏎️  --- ASSETTO CORSA IDENTIFICADO ---")
+    print(f"🚗 Carro:  {info['carro']}")
+    print(f"👤 Piloto: {info['piloto']}")
+    print(f"🏁 Pista:  {info['pista']} ({info['layout']})")
+    print(f"⚙️  Versão: {info['ver']}")
+    print("--------------------------------------\n")
+    return info
 
 UDP_IP = "127.0.0.1"
 UDP_PORT = 9996
@@ -19,8 +53,10 @@ sock.bind(("0.0.0.0", 0))
 handshake = struct.pack('iii', 1, 1, 0)
 sock.sendto(handshake, (UDP_IP, UDP_PORT))
 print("Handshake enviado")
-
-time.sleep(0.5)
+data, addr = sock.recvfrom(1024)
+packet = struct.pack('iii', 1, 1, 0)
+print(f"✅ Recebido pacote de {len(data)} bytes de {addr}")
+processar_handshake(data)
 
 # =========================
 # 2. SUBSCRIBE (UPDATE)
@@ -33,30 +69,11 @@ print("Subscribe enviado")
 # 3. RECEBER DADOS
 # =========================
 while True:
-    data, addr = sock.recvfrom(4096)
-    size = len(data)
-    #print(f"Recebido {len(data)} bytes de {addr}")
-    #print(len(data))
-
     # 👇 HANDSHAKE RESPONSE
-    if size == 208 and car is None:
-        try:
-            unpacked = struct.unpack('<50s50sii50s50s', data)
-
-            car = unpacked[0].decode('latin-1').strip('\x00')
-            driver = unpacked[1].decode('latin-1').strip('\x00')
-            track = unpacked[4].decode('latin-1').strip('\x00')
-            config = unpacked[5].decode('latin-1').strip('\x00')
-
-            print("🎯 HANDSHAKE CAPTURADO")
-            print(f"Carro: {car}")
-            print(f"Pista: {track} ({config})")
-
-        except Exception as e:
-            print("Erro handshake:", e)
-
     base = 8
     try:
+        data, addr = sock.recvfrom(4096)
+        size = len(data)
         unpacked = struct.unpack('<50s50sii50s50s', data[:208])
 
         speed_kmh = struct.unpack_from('<f', data, 8)[0]
