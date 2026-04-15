@@ -24,15 +24,25 @@ while True:
                 #steer = struct.unpack_from('<b', data, 308)[0]
                 #acelerador = struct.unpack_from('<B', data, 303)[0]
                 #freio = struct.unpack_from('<B', data, 304)[0]
-                velocidade = struct.unpack_from('<f', data, 244)[0] * 3.6
+                #velocidade = struct.unpack_from('<f', data, 244)[0] * 3.6
                 #boost = struct.unpack_from('<f', data, 272)[0]
-                bestlap = struct.unpack_from('<f', data, 284)[0]
+                #bestlap = struct.unpack_from('<f', data, 284)[0]
                 #racePosition = struct.unpack_from('<B', data, 302)[0]
-                lapNumber = struct.unpack_from('<h', data, 300)[0]
+                #lapNumber = struct.unpack_from('<h', data, 300)[0]
+                #current_lap_time = struct.unpack_from('<f', data, 292)[0]
                 #fuel = struct.unpack_from('<f', data, 276)[0]
                 #isRaceOn = struct.unpack_from('<i', data, 0)[0]
                 #carroID = struct.unpack_from('<i', data, 212)[0]
 
-                print(f"velocidade {velocidade}, bestlap {bestlap}, lapNumber {lapNumber}")
+                # Extrai dados binários do pacote (offsets específicos)
+                velocidade = struct.unpack_from('<f', data, 244)[0] * 3.6
+                bestlap = struct.unpack_from('<f', data, 284)[0]
+                lapNumber = struct.unpack_from('<h', data, 300)[0]
+                current_lap_time = struct.unpack_from('<f', data, 292)[0]
+
+                # O segredo está aqui: o \r no início e o end="\r" no final
+                # Adicionei :.2f para os números não ficarem com mil casas decimais gigantes
+                print(f"\rVel: {velocidade:5.1f} km/h | Best: {bestlap:7.2f}s | Volta: {lapNumber:02d} | Atual: {current_lap_time:7.2f}s", end="")
+                
             except struct.error as e:
-                print(f"Erro ao decodificar pacote: {e}")
+                print(f"\nErro ao decodificar pacote: {e}") # \n aqui para não encavalar no log de erro
