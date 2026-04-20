@@ -1,6 +1,6 @@
 import socket
 import struct
-
+import time
 
 def processar_handshake(data):
     if len(data) != 408:
@@ -19,71 +19,92 @@ def processar_handshake(data):
     def limpar(texto_bruto):
         return texto_bruto.decode('utf-16-le', errors='ignore').split('\x00')[0].strip()
 
-    info = {
-        "carro":  limpar(unpacked[0]),
-        "piloto": limpar(unpacked[1]),
-        "id":     unpacked[2],
-        "ver":    unpacked[3],
-        "pista":  limpar(unpacked[4]),
-        "layout": limpar(unpacked[5])
-    }
+
+    carro = limpar(unpacked[0])
+    pista = limpar(unpacked[4])
+    layout = limpar(unpacked[5])
     
-    print("\n🏎️  --- ASSETTO CORSA IDENTIFICADO ---")
-    print(f"🚗 Carro:  {info['carro']}")
-    print(f"👤 Piloto: {info['piloto']}")
-    print(f"🏁 Pista:  {info['pista']} ({info['layout']})")
-    print(f"⚙️  Versão: {info['ver']}")
-    print("--------------------------------------\n")
+    
+    info = f"carro: {carro} pista: {pista} layout: {layout}"
     return info
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 9996
-
-#SO E POSSIVEL PEGAR CARRO E PISTA VIA SHAREDMEMORY O PACOTE DE 208 BYTES DO ASSETTO CORSA NAO FUNCIONA
-
-# cria socket UDP
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-# opcional: bind pra receber resposta
-sock.bind(("0.0.0.0", 0))
-
-# =========================
-# 1. HANDSHAKE
-# =========================
-handshake = struct.pack('iii', 1, 1, 0)
-sock.sendto(handshake, (UDP_IP, UDP_PORT))
-print("Handshake enviado")
-data, addr = sock.recvfrom(1024)
-packet = struct.pack('iii', 1, 1, 0)
-print(f"✅ Recebido pacote de {len(data)} bytes de {addr}")
-processar_handshake(data)
-
+def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
 # =========================
 # 2. SUBSCRIBE (UPDATE)
 # =========================
-subscribe = struct.pack('iii', 1, 1, 1)
-sock.sendto(subscribe, (UDP_IP, UDP_PORT))
-print("Subscribe enviado")
+    subscribe = struct.pack('iii', 1, 1, 1)
+    sock.sendto(subscribe, (UDP_IP, UDP_PORT))
+    print("Subscribe enviado")
 
 # =========================
 # 3. RECEBER DADOS
 # =========================
+    ultima_volta = -1  # Começa em -1 para capturar a volta 0 assim que começar
+    print("🚀 ACS 2: Monitorando Assetto Corsa... (Aguardando fechamento de volta)")
+
+    while True:
+        # 👇 HANDSHAKE RESPONSE
+        base = 8
+    
+        try:
+            data, addr = sock.recvfrom(4096)
+            #size = len(data)
+            #unpacked = struct.unpack('<50s50sii50s50s', data[:208])
+            lapCount = struct.unpack_from('<i', data, base + 44)[0]
+            
+            if lapCount != ultima_volta:
+                #speed_kmh = struct.unpack_from('<f', data, 8)[0]
+                #lapTime  = struct.unpack_from('<i', data, base + 32)[0]
+                lastLap  = struct.unpack_from('<i', data, base + 36)[0]
+                bestLap  = struct.unpack_from('<i', data, base + 40)[0]
+                
+                ultima_volta = lapCount
+
+                DadosAssettoCorsa = {
+                "info_sessao": info_sessao,
+                "lastLap": lastLap,
+                "ultima_volta": ultima_volta,
+                "bestLap": bestLap
+                }
+
+                print(DadosAssettoCorsa)
+
+        except struct.error as e:
+                print("Erro ao decodificar handshake:", e)
+
+# --- CONFIGURAÇÃO INICIAL ---
+UDP_IP = "127.0.0.1"
+UDP_PORT = 9996
+
+print("🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)")
+
 while True:
-    # 👇 HANDSHAKE RESPONSE
-    base = 8
+    # Criamos o socket DENTRO do loop de espera para garantir que ele esteja limpo
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    
+    # O PULO DO GATO REFORÇADO 🐈
+    if hasattr(socket, 'SIO_UDP_CONNRESET'):
+        sock.ioctl(socket.SIO_UDP_CONNRESET, False)
+    
     try:
-        data, addr = sock.recvfrom(4096)
-        size = len(data)
-        unpacked = struct.unpack('<50s50sii50s50s', data[:208])
+        sock.settimeout(1.0) # Espera 1 seg por tentativa
+        handshake = struct.pack('iii', 1, 1, 0)
+        sock.sendto(handshake, (UDP_IP, UDP_PORT))
+        
+        data, addr = sock.recvfrom(1024)
+        
+        if len(data) == 408:
+            info_sessao = processar_handshake(data)
+            if info_sessao:
+                SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT)
+                
+    except (socket.timeout, ConnectionResetError):
+        # O ConnectionResetError é o WinError 10054
+        # Se der esse erro, a gente só ignora e tenta de novo
+        sock.close() # Fecha o socket atual pra abrir um novo na próxima volta
+        time.sleep(1) # Espera um pouco pra não fritar o processador
+        continue
+    except KeyboardInterrupt:
+        print("\nSaindo...")
+        break
 
-        speed_kmh = struct.unpack_from('<f', data, 8)[0]
-        lapTime  = struct.unpack_from('<i', data, base + 32)[0]
-        lastLap  = struct.unpack_from('<i', data, base + 36)[0]
-        bestLap  = struct.unpack_from('<i', data, base + 40)[0]
-        lapCount = struct.unpack_from('<i', data, base + 44)[0]
-
-
-        print(f"KMH: {speed_kmh:.1f}, laptime {lapTime} lapcount {lapCount}")
-
-    except struct.error as e:
-            print("Erro ao decodificar handshake:", e)
