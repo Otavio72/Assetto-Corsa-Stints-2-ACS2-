@@ -1,6 +1,6 @@
 import socket
 import struct
-
+import time
 # DNA das pistas (Tamanho / Pico)
 MAPA_PISTAS = {
     5301.926868: "AUSTRALIA"
@@ -40,6 +40,9 @@ pista_confirmada = 0
 ultima_volta = 0
 ultima_volta_fechada = 0
 contador_voltas = 0
+ultimo_timer_sessao = -1
+timer_pc = time.time()  # Relógio do PC guardando o início
+contador_pacotes_iguais = 0
 
 
 def buscar_carro(pista, valor_box):
@@ -55,7 +58,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("0.0.0.0", 20777))
     
 def PegarCarroEpista():
-    global valor_box_capturado, pico_atual, pista_confirmada
+    global valor_box_capturado, pico_atual, pista_confirmada, ultimo_timer_sessao,contador_pacotes_iguais
     
     # 1. As variáveis de contagem PRECISAM estar fora do While
     count_val = 0
@@ -103,50 +106,67 @@ def PegarCarroEpista():
                         print(f"🏎️ [CARRO OK] Identificado: {carro_nome}")
                         
                         # Passa o bastão para a telemetria principal e encerra
-                        SocketF12013(contador_voltas,carro_nome,pista_confirmada,ultima_volta,ultima_volta_fechada)
+                        SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta)
                         
 
     except KeyboardInterrupt:
         print("\n🛑 Encerrado.")
 
-def SocketF12013(contador_voltas,carro_nome,pista_confirmada,ultima_volta,ultima_volta_fechada):
+def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
+    sock.settimeout(5.0)
     while True:
-        data, _ = sock.recvfrom(4096)
-        pacote = struct.unpack('f' * (len(data) // 4), data)
+        try:
+            data, _ = sock.recvfrom(4096)
+            
+            pacote = struct.unpack('f' * (len(data) // 4), data)
+            
+            #velocidade: velocidade = pacote[7] * 3.6,
+            # tempo de volta: volta = pacote[1]
+            # ACELERADOR teste3 = pacote[29]
+            # FREIO teste5 = pacote[31]
+            # POSICAO NA CORRIDA teste1 = pacote[39]
+            # quantidade de voltas da corrida teste1 = pacote[60]
+            # --- Processamento dos dados ---
+            #vel_kmh    = pacote[7] * 3.6
+            tempo_lap  = pacote[1]
+            #gas        = pacote[29] * 100  # Convertendo para 0-100%
+            #brake      = pacote[31] * 100  # Convertendo para 0-100%
+            #pos        = int(pacote[39])
+            total_laps = int(pacote[60])
 
-        #velocidade: velocidade = pacote[7] * 3.6,
-        # tempo de volta: volta = pacote[1]
-        # ACELERADOR teste3 = pacote[29]
-        # FREIO teste5 = pacote[31]
-        # POSICAO NA CORRIDA teste1 = pacote[39]
-        # quantidade de voltas da corrida teste1 = pacote[60]
-        # --- Processamento dos dados ---
-        #vel_kmh    = pacote[7] * 3.6
-        tempo_lap  = pacote[1]
-        #gas        = pacote[29] * 100  # Convertendo para 0-100%
-        #brake      = pacote[31] * 100  # Convertendo para 0-100%
-        #pos        = int(pacote[39])
-        total_laps = int(pacote[60])
 
-        if tempo_lap < ultima_volta and ultima_volta > 10.0:
 
-            ultima_volta_fechada = ultima_volta
+            if tempo_lap < ultima_volta and ultima_volta > 10.0:
 
-            contador_voltas += 1
-            volta_atual = contador_voltas + 1
-            voltas_restantes = total_laps - contador_voltas
+                ultima_volta_fechada = ultima_volta
 
-            DataF12013 = {
-                "Tempo": ultima_volta_fechada,
-                "VoltaAtual": volta_atual,
-                "Restantes": voltas_restantes,
-                "Pista": pista_confirmada,
-                "Carro": carro_nome
-            }
+                contador_voltas += 1
+                volta_atual = contador_voltas + 1
+                voltas_restantes = total_laps - contador_voltas
 
-            print(DataF12013)
+                DataF12013 = {
+                    "Tempo": ultima_volta_fechada,
+                    "VoltaAtual": volta_atual,
+                    "Restantes": voltas_restantes,
+                    "Pista": pista_confirmada,
+                    "Carro": carro_nome
+                }
 
-        ultima_volta = tempo_lap
+                print(DataF12013)
+
+            ultima_volta = tempo_lap
+
+        except socket.timeout:
+            # 🚨 O ALARME TOCOU! Se passaram 5 segundos de silêncio absoluto no rádio
+            print("\n🛑 [ACS 2] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado).")
+            print("FECHOU")
+            sock.close() # Fecha a conexão limpa
+            break # 🎯 Quebra o loop e encerra o stint com sucesso!
+            
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
+            sock.close()
+            break
 
             
         # AGORA O PULO DO GATO: 
