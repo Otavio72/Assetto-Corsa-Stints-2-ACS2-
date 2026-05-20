@@ -13,6 +13,7 @@ volta_atual = -1
 dados_gerais = {}
 dados_timing = {}
 dados_pneus = {}
+ultimas_voltas = {}
 
 piloto1 = ""
 piloto2 = ""
@@ -51,10 +52,21 @@ while True:
         timeout_maximo += 1
         time.sleep(1)
 
-        if timeout_maximo <= 100:
-            print(f"⏳ Nada encontrado... {timeout_maximo}/100s", end="\r")
+        if timeout_maximo <= 1200:
+            print(f"⏳ Nada encontrado... {timeout_maximo}/1200s", end="\r")
         else:
-            print("\n⛔ Encerrando...")
+            # Listamos tudo o que existe dentro do diretório
+            for item in os.listdir(caminho_projeto):
+                item_completo = os.path.join(caminho_projeto, item)
+                try:
+                    if os.path.isfile(item_completo) or os.path.islink(item_completo):
+                        os.unlink(item_completo)  # Apaga arquivo ou link simbólico
+                    elif os.path.isdir(item_completo):
+                        shutil.rmtree(item_completo) # Apaga subpasta e tudo dentro dela
+                except Exception as e:
+                    print(f"❌ Erro ao apagar {item}: {e}")
+
+            print("✨ Pasta limpa! Encerrando...")
             break
         continue
 
@@ -124,6 +136,7 @@ while True:
 
                                     last_lap = colunas[indice_last_lap]
                                     timing_temp["Last Lap Time"] = last_lap
+                                    
 
                                 except IndexError:
                                     timing_temp["Last Lap Time"] = "N/A"
@@ -146,32 +159,32 @@ while True:
                         for idx, nome in TrackSessionMAPA.items():
                             dados_pneus[nome] = colunas[idx] if idx < len(colunas) else "N/A"
 
-            # DEBUG opcional
-            #print(dados_gerais)
-            #print(dados_timing)
-            #print(dados_pneus)
+            try:
+                    lap1 = int(dados_gerais.get('Lap Number1', -1))
+                    lap2 = int(dados_gerais.get('Lap Number2', -1))
+            except:
+                    lap1 = lap2 = -1
 
-            if ultima_volta != volta_atual:
-                print(
+                # PILOTO 1
+            if piloto1 and lap1 > ultimas_voltas.get(piloto1, -1):
+                    print(
                         f"{dados_gerais['Driver name1']} | "
                         f"{dados_gerais['Driver Team1']} | "
-                        f"Lap: {dados_gerais['Lap Number1']} | "
-                        f"{dados_timing.get(piloto1)}"
+                        f"Lap: {lap1} | "
+                        f"Last Lap: {dados_timing.get(piloto1, {}).get('Last Lap Time', 'N/A')}"
                     )
-                
-                print(
+                    ultimas_voltas[piloto1] = lap1
+
+                # PILOTO 2
+            if piloto2 and lap2 > ultimas_voltas.get(piloto2, -1):
+                    print(
                         f"{dados_gerais['Driver name2']} | "
                         f"{dados_gerais['Driver Team2']} | "
-                        f"Lap: {dados_gerais['Lap Number2']} | "
-                        f"{dados_timing.get(piloto2)}"
+                        f"Lap: {lap2} | "
+                        f"Last Lap: {dados_timing.get(piloto2, {}).get('Last Lap Time', 'N/A')}"
                     )
+                    ultimas_voltas[piloto2] = lap2
                 
-
-                ultima_volta = volta_atual
-            
-            else:
-                timeout_maximo = 100
-
         except PermissionError:
             pass
         except Exception as e:
