@@ -1,6 +1,7 @@
 import socket
 import struct
 import time
+import sys
 
 def processar_handshake(data):
     if len(data) != 408:
@@ -81,7 +82,7 @@ print("🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)")
 while True:
     # Criamos o socket DENTRO do loop de espera para garantir que ele esteja limpo
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
+
     # O PULO DO GATO REFORÇADO 🐈
     if hasattr(socket, 'SIO_UDP_CONNRESET'):
         sock.ioctl(socket.SIO_UDP_CONNRESET, False)
@@ -97,8 +98,22 @@ while True:
             info_sessao = processar_handshake(data)
             if info_sessao:
                 SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT)
-                
-    except (socket.timeout, ConnectionResetError):
+                sock.settimeout(30)  # Se o jogo silenciar por 30 segundos, ativa o alarme!
+
+    except socket.timeout:
+        # 🚨 A FLAG QUE VOCÊ QUERIA! 
+        # Se chegou aqui, significa que o jogo fechou ou parou de mandar dados.
+        print("\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!")
+        
+        sock.close()  # Fecha o socket atual de forma limpa
+        
+        # Aqui você decide o que o ACS 2 faz:
+        # Se quiser fechar o programa todo:
+        sys.exit() 
+        
+        # Se quiser salvar os dados e voltar a esperar um novo jogo abrir:
+        # break # (sai desse loop e vai pra lógica de reiniciar)
+    except (ConnectionResetError):
         # O ConnectionResetError é o WinError 10054
         # Se der esse erro, a gente só ignora e tenta de novo
         sock.close() # Fecha o socket atual pra abrir um novo na próxima volta
