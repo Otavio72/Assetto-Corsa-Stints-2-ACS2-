@@ -1,6 +1,8 @@
 import socket
 import struct
 import time
+import json
+
 # DNA das pistas (Tamanho / Pico)
 MAPA_PISTAS = {
     5301.926868: "AUSTRALIA"
@@ -64,7 +66,11 @@ def PegarCarroEpista():
     count_val = 0
     v_antigo = 0.0
 
-    print("🛰️ Aguardando estabilização no Box...")
+    #print("🛰️ Aguardando estabilização no Box...")
+    print(
+            '🛰️ Aguardando estabilização no Box...', end="",
+            flush=True
+        )
 
     try:
         while True:
@@ -83,9 +89,18 @@ def PegarCarroEpista():
 
                 if count_val >= 15: # Aumentei pra 15 pra garantir
                     valor_box_capturado = valor_atual
-                    print(f"\n✅ [BOX OK] Valor: {valor_box_capturado:.4f}")
+                    #print(f"\n✅ [BOX OK] Valor: {valor_box_capturado:.4f}")
+                    print(
+                        f"\n✅ [BOX OK] Valor: {valor_box_capturado:.4f}",
+                        flush=True
+                        )
                 else:
-                    print(f"\r⏳ Sincronizando: {count_val}/15", end="")
+                    #print(f"\r⏳ Sincronizando: {count_val}/15", end="")
+
+                    print(
+                        f"\r⏳ Sincronizando: {count_val}/15", end="",
+                        flush=True
+                        )
                     continue # Volta pro topo para pegar o próximo pacote
 
             # --- ETAPA B: BUSCAR A PISTA (SÓ CHEGA AQUI SE O BOX JÁ FOI CAPTURADO) ---
@@ -99,11 +114,21 @@ def PegarCarroEpista():
                 for dna, nome_pista in MAPA_PISTAS.items():
                     if abs(pico_atual - dna) < 2.0:
                         pista_confirmada = nome_pista
-                        print(f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}")
+                        #print(f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}")
+                        
+                        print(
+                                f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}",
+                                flush=True
+                                )
                         
                         # ETAPA C: BINGO!
                         carro_nome = buscar_carro(pista_confirmada, valor_box_capturado)
-                        print(f"🏎️ [CARRO OK] Identificado: {carro_nome}")
+                        #print(f"🏎️ [CARRO OK] Identificado: {carro_nome}")
+
+                        print(
+                                f"🏎️ [CARRO OK] Identificado: {carro_nome}",
+                                flush=True
+                                )
                         
                         # Passa o bastão para a telemetria principal e encerra
                         SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta)
@@ -113,7 +138,7 @@ def PegarCarroEpista():
         print("\n🛑 Encerrado.")
 
 def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
-    sock.settimeout(5.0)
+    sock.settimeout(100)
     while True:
         try:
             data, _ = sock.recvfrom(4096)
@@ -152,7 +177,10 @@ def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
                     "Carro": carro_nome
                 }
 
-                print(DataF12013)
+                print(
+                    json.dumps(DataF12013),
+                    flush=True
+                    )
 
             ultima_volta = tempo_lap
 
