@@ -1,0 +1,362 @@
+import flet as ft
+import subprocess
+import sys
+import threading
+import json
+
+    # =========================================================================
+    # ⚙️ SOCKETS
+    # =========================================================================
+
+processo_socket = None
+dados_recebidos = {}
+
+def ler_output_socket():
+    global dados_recebidos
+    while True:
+
+        linha = processo_socket.stdout.readline()
+
+        if not linha:
+            break
+        
+        linha = linha.strip()
+
+        print("DADO RECEBIDO:", linha)
+
+        if linha.startswith("{"):
+            dados_recebidos = json.loads(linha)
+            print("JSON OK:", dados_recebidos)
+
+        else:
+            print("LOG:", linha)
+
+def IniciarAC():
+    
+    global processo_socket
+
+    processo_socket = subprocess.Popen(
+    [sys.executable, "sockAssettoCorsa.py"],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    encoding="utf-8"
+)
+    threading.Thread(
+        target=ler_output_socket,
+        daemon=True
+    ).start()
+
+def IniciarF12013():
+    
+    global processo_socket
+
+    processo_socket = subprocess.Popen(
+    [sys.executable, "SockF12013.py"],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    encoding="utf-8"
+)
+    threading.Thread(
+        target=ler_output_socket,
+        daemon=True
+    ).start()
+
+def main(page: ft.Page):
+
+    # 🎨 Configurações
+    page.title = "Assetto Corsa Stints 2 - ACS 2"
+    page.theme_mode = ft.ThemeMode.DARK
+
+    page.window.width = 850
+    page.window.height = 600
+    page.window.resizable = False
+
+    page.padding = 20
+
+    jogo_atual = ""
+
+    # =========================================================================
+    # 🚥 COMPONENTES
+    # =========================================================================
+
+    led_pacote = ft.Container(
+        width=20,
+        height=20,
+        border_radius=10,
+        bgcolor=ft.Colors.RED_400,
+        animate=ft.Animation(
+            200,
+            ft.AnimationCurve.EASE_OUT
+        )
+    )
+
+    txt_status_socket = ft.Text(
+        "Socket: DESLIGADO",
+        size=16,
+        weight=ft.FontWeight.BOLD,
+        color=ft.Colors.RED_400
+    )
+
+    txt_jogo_titulo = ft.Text(
+        "",
+        size=28,
+        weight=ft.FontWeight.BOLD
+    )
+
+    # =========================================================================
+    # 🔥 SOCKET
+    # =========================================================================
+
+    def alternar_socket(e):
+        global jogo_atual, processo_socket
+
+
+        if btn_ligar_sock.text == "LIGAR COLETOR":
+
+            if jogo_atual == "F1 2013":
+                IniciarF12013()
+            elif jogo_atual == "Assetto Corsa":
+                IniciarAC()
+
+            btn_ligar_sock.text = "DESLIGAR COLETOR"
+            btn_ligar_sock.bgcolor = ft.Colors.RED_700
+
+            txt_status_socket.value = "Socket: AGUARDANDO DADOS..."
+            txt_status_socket.color = ft.Colors.AMBER_400
+
+            led_pacote.bgcolor = ft.Colors.AMBER_400
+        
+        else:
+
+            if processo_socket:
+                processo_socket.terminate()
+
+            btn_ligar_sock.text = "LIGAR COLETOR"
+            btn_ligar_sock.bgcolor = ft.Colors.GREEN_700
+
+            txt_status_socket.value = "Socket: DESLIGADO"
+            txt_status_socket.color = ft.Colors.RED_400
+
+            led_pacote.bgcolor = ft.Colors.RED_400
+
+        page.update()
+
+    # =========================================================================
+    # 🔘 BOTÃO
+    # =========================================================================
+
+    btn_ligar_sock = ft.ElevatedButton(
+        text="LIGAR COLETOR",
+        bgcolor=ft.Colors.GREEN_700,
+        color=ft.Colors.WHITE,
+        height=50,
+        on_click=alternar_socket
+    )
+
+    # =========================================================================
+    # 🗺️ ROTAS
+    # =========================================================================
+
+    def rota_mudou(route):
+
+        page.views.clear()
+
+        # ==========================================================
+        # 🏁 MENU
+        # ==========================================================
+
+        if page.route == "/":
+
+            btn_sel_f1 = ft.TextButton(
+                text="Selecionar",
+                on_click=lambda _: ir_para_dashboard("F1 2013")
+            )
+
+            btn_sel_ac = ft.TextButton(
+                text="Selecionar",
+                on_click=lambda _: ir_para_dashboard("Assetto Corsa")
+            )
+
+            page.views.append(
+                ft.View(
+                    "/",
+                    [
+                        ft.AppBar(
+                            title=ft.Text("ACS 2 - Selecione o Jogo"),
+                            bgcolor=ft.Colors.SURFACE
+                        ),
+
+                        ft.Text(
+                            "Escolha a categoria para iniciar a telemetria:",
+                            size=18
+                        ),
+
+                        ft.Container(height=20),
+
+                        ft.Row(
+                            [
+                                # CARD F1
+                                ft.Card(
+                                    content=ft.Container(
+                                        content=ft.Column(
+                                            [
+                                                ft.ListTile(
+                                                    leading=ft.Icon(ft.Icons.SPEED),
+                                                    title=ft.Text("F1 2013"),
+                                                    subtitle=ft.Text("Codemasters UDP Socket")
+                                                ),
+
+                                                ft.Row(
+                                                    [btn_sel_f1],
+                                                    alignment=ft.MainAxisAlignment.END
+                                                )
+                                            ]
+                                        ),
+
+                                        width=230,
+                                        padding=10
+                                    )
+                                ),
+
+                                # CARD AC
+                                ft.Card(
+                                    content=ft.Container(
+                                        content=ft.Column(
+                                            [
+                                                ft.ListTile(
+                                                    leading=ft.Icon(ft.Icons.DIRECTIONS_CAR),
+                                                    title=ft.Text("Assetto Corsa"),
+                                                    subtitle=ft.Text("Shared Memory / UDP")
+                                                ),
+
+                                                ft.Row(
+                                                    [btn_sel_ac],
+                                                    alignment=ft.MainAxisAlignment.END
+                                                )
+                                            ]
+                                        ),
+
+                                        width=230,
+                                        padding=10
+                                    )
+                                )
+                            ],
+
+                            
+                            spacing=20
+                        )
+                    ],
+
+                                    )
+            )
+
+        # ==========================================================
+        # 📊 DASHBOARD
+        # ==========================================================
+
+        elif page.route == "/dashboard":
+
+            txt_jogo_titulo.value = f"Painel de Controle - {jogo_atual}"
+
+            btn_voltar = ft.IconButton(
+                icon=ft.Icons.ARROW_BACK,
+                on_click=lambda _: page.go("/")
+            )
+
+            page.views.append(
+                ft.View(
+                    "/dashboard",
+                    [
+                        ft.AppBar(
+                            title=txt_jogo_titulo,
+                            bgcolor=ft.Colors.SURFACE,
+                            leading=btn_voltar
+                        ),
+
+                        ft.Container(height=20),
+
+                        ft.Container(
+                            content=ft.Column(
+                                [
+                                    ft.Row(
+                                        [
+                                            ft.Text(
+                                                "Status do Sinal:",
+                                                size=16
+                                            ),
+
+                                            led_pacote,
+
+                                            txt_status_socket
+                                        ],
+
+                                        
+                                        spacing=15
+                                    ),
+
+                                    ft.Container(height=30),
+
+                                    ft.Row(
+                                        [btn_ligar_sock],
+                                                                            )
+                                ]
+                            ),
+
+                            padding=30,
+
+                            border=ft.border.all(
+                                1,
+                                ft.Colors.WHITE24
+                            ),
+
+                            border_radius=10,
+
+                            bgcolor=ft.Colors.BLACK26
+                        ),
+
+                        ft.Container(height=10),
+
+                        ft.Text(
+                            "Dica: Ligue o coletor e depois abra o simulador na pista.",
+                            size=12,
+                            color=ft.Colors.WHITE38,
+                            text_align=ft.TextAlign.CENTER
+                        )
+                    ],
+
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                )
+            )
+
+        page.update()
+
+    # =========================================================================
+    # 🚗 NAVEGAÇÃO
+    # =========================================================================
+
+    def ir_para_dashboard(nome_jogo):
+
+        global jogo_atual
+
+        jogo_atual = nome_jogo
+
+        page.go("/dashboard")
+
+    def view_pop(view):
+
+        page.views.pop()
+
+        top_view = page.views[-1]
+
+        page.go(top_view.route)
+
+    page.on_route_change = rota_mudou
+    page.on_view_pop = view_pop
+
+    page.go("/")
+
+
+# 🚀 EXECUTA
+ft.app(target=main)
