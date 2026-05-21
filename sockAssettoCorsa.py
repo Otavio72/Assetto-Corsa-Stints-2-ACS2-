@@ -2,10 +2,15 @@ import socket
 import struct
 import time
 import sys
+import json
 
 def processar_handshake(data):
     if len(data) != 408:
         print(f"⚠️ Pacote inesperado: {len(data)} bytes")
+        print(
+        f"⚠️ Pacote inesperado: {len(data)} bytes",
+        flush=True
+        )
         return
 
     # Formato: 100 bytes string, 100 bytes string, int, int, 100 bytes string, 100 bytes string
@@ -35,13 +40,21 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
 # =========================
     subscribe = struct.pack('iii', 1, 1, 1)
     sock.sendto(subscribe, (UDP_IP, UDP_PORT))
-    print("Subscribe enviado")
+    #print("Subscribe enviado")
+    print(
+        "Subscribe enviado",
+        flush=True
+        )
 
 # =========================
 # 3. RECEBER DADOS
 # =========================
     ultima_volta = -1  # Começa em -1 para capturar a volta 0 assim que começar
-    print("🚀 ACS 2: Monitorando Assetto Corsa... (Aguardando fechamento de volta)")
+    #print("🚀 ACS 2: Monitorando Assetto Corsa... (Aguardando fechamento de volta)")
+    print(
+        "🚀 ACS 2: Monitorando Assetto Corsa... (Aguardando fechamento de volta)",
+        flush=True
+        )
 
     while True:
         # 👇 HANDSHAKE RESPONSE
@@ -68,16 +81,27 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
                 "bestLap": bestLap
                 }
 
-                print(DadosAssettoCorsa)
+                print(
+                    json.dumps(DadosAssettoCorsa),
+                    flush=True
+                    )
 
         except struct.error as e:
-                print("Erro ao decodificar handshake:", e)
+                #print("Erro ao decodificar handshake:", e)
+                print(
+                "Erro ao decodificar handshake:", e,
+                flush=True
+                )
 
 # --- CONFIGURAÇÃO INICIAL ---
 UDP_IP = "127.0.0.1"
 UDP_PORT = 9996
 
-print("🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)")
+#print("🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)")
+print(
+        "🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)",
+        flush=True
+        )
 
 while True:
     # Criamos o socket DENTRO do loop de espera para garantir que ele esteja limpo
@@ -103,7 +127,11 @@ while True:
     except socket.timeout:
         # 🚨 A FLAG QUE VOCÊ QUERIA! 
         # Se chegou aqui, significa que o jogo fechou ou parou de mandar dados.
-        print("\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!")
+        #print("\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!")
+        print(
+        "\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!",
+        flush=True
+        )
         
         sock.close()  # Fecha o socket atual de forma limpa
         
@@ -120,6 +148,10 @@ while True:
         time.sleep(1) # Espera um pouco pra não fritar o processador
         continue
     except KeyboardInterrupt:
-        print("\nSaindo...")
+        #print("\nSaindo...")
+        print(
+        "\nSaindo...",
+        flush=True
+        )
         break
 
