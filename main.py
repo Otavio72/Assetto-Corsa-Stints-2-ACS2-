@@ -3,67 +3,133 @@ import subprocess
 import sys
 import threading
 import json
+import os
+import shutil
 
-    # =========================================================================
-    # ⚙️ SOCKETS
-    # =========================================================================
+# =========================================================================
+# 🧹 UTILITARIOS
+# =========================================================================
+caminho_projeto = "logs_capturados"
+
+def limpar_logs(e):
+
+    for item in os.listdir(caminho_projeto):
+
+        item_completo = os.path.join(
+            caminho_projeto,
+            item
+        )
+
+        try:
+
+            if os.path.isfile(item_completo):
+
+                os.unlink(item_completo)
+
+            elif os.path.isdir(item_completo):
+
+                shutil.rmtree(item_completo)
+
+        except Exception as erro:
+
+            print(
+                f"ERRO: {erro}",
+                flush=True
+            )
+
+    print(
+        "🧹 Logs apagados!",
+        flush=True
+    )
+
+# =========================================================================
+# ⚙️ SOCKETS
+# =========================================================================
 
 processo_socket = None
 dados_recebidos = {}
 
-def ler_output_socket():
-    global dados_recebidos
-    while True:
 
-        linha = processo_socket.stdout.readline()
 
-        if not linha:
-            break
-        
-        linha = linha.strip()
 
-        print("DADO RECEBIDO:", linha)
-
-        if linha.startswith("{"):
-            dados_recebidos = json.loads(linha)
-            print("JSON OK:", dados_recebidos)
-
-        else:
-            print("LOG:", linha)
-
-def IniciarAC():
-    
-    global processo_socket
-
-    processo_socket = subprocess.Popen(
-    [sys.executable, "sockAssettoCorsa.py"],
-    stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT,
-    text=True,
-    encoding="utf-8"
-)
-    threading.Thread(
-        target=ler_output_socket,
-        daemon=True
-    ).start()
-
-def IniciarF12013():
-    
-    global processo_socket
-
-    processo_socket = subprocess.Popen(
-    [sys.executable, "SockF12013.py"],
-    stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT,
-    text=True,
-    encoding="utf-8"
-)
-    threading.Thread(
-        target=ler_output_socket,
-        daemon=True
-    ).start()
 
 def main(page: ft.Page):
+
+    def ler_output_socket():
+        global dados_recebidos
+        
+        while True:
+
+            linha = processo_socket.stdout.readline()
+
+            if not linha:
+                break
+            
+            linha = linha.strip()
+
+            # 🔥 MUDAR STATUS AO RECEBER DADOS
+            txt_status_socket.value = "Socket: RECEBENDO DADOS"
+            txt_status_socket.color = ft.Colors.GREEN_400
+
+            led_pacote.bgcolor = ft.Colors.GREEN_400
+
+            page.update()
+
+            print("DADO RECEBIDO:", linha)
+
+            if linha.startswith("{"):
+                dados_recebidos = json.loads(linha)
+                print("JSON OK:", dados_recebidos)
+
+            else:
+                print("LOG:", linha)
+
+    def IniciarAC():
+        global processo_socket
+
+        processo_socket = subprocess.Popen(
+        [sys.executable, "sockAssettoCorsa.py"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8"
+    )
+        threading.Thread(
+            target=ler_output_socket,
+            daemon=True
+        ).start()
+
+    def IniciarF12013():
+        
+        global processo_socket
+
+        processo_socket = subprocess.Popen(
+        [sys.executable, "SockF12013.py"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8"
+    )
+        threading.Thread(
+            target=ler_output_socket,
+            daemon=True
+        ).start()
+
+    def IniciarMM():
+
+        global processo_socket
+
+        processo_socket = subprocess.Popen(
+        [sys.executable, "sockMotorsportManager.py"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8"
+    )
+        threading.Thread(
+            target=ler_output_socket,
+            daemon=True
+        ).start()
 
     # 🎨 Configurações
     page.title = "Assetto Corsa Stints 2 - ACS 2"
@@ -110,7 +176,8 @@ def main(page: ft.Page):
     # =========================================================================
 
     def alternar_socket(e):
-        global jogo_atual, processo_socket
+        global processo_socket
+        nonlocal jogo_atual
 
 
         if btn_ligar_sock.text == "LIGAR COLETOR":
@@ -119,6 +186,8 @@ def main(page: ft.Page):
                 IniciarF12013()
             elif jogo_atual == "Assetto Corsa":
                 IniciarAC()
+            elif jogo_atual == "Motorsport Manager":
+                IniciarMM()
 
             btn_ligar_sock.text = "DESLIGAR COLETOR"
             btn_ligar_sock.bgcolor = ft.Colors.RED_700
@@ -177,6 +246,11 @@ def main(page: ft.Page):
             btn_sel_ac = ft.TextButton(
                 text="Selecionar",
                 on_click=lambda _: ir_para_dashboard("Assetto Corsa")
+            )
+
+            btn_sel_MM = ft.TextButton(
+                text="Selecionar",
+                on_click=lambda _: ir_para_dashboard("Motorsport Manager")
             )
 
             page.views.append(
@@ -241,6 +315,29 @@ def main(page: ft.Page):
                                         width=230,
                                         padding=10
                                     )
+                                ),
+
+                                # CARD AC
+                                ft.Card(
+                                    content=ft.Container(
+                                        content=ft.Column(
+                                            [
+                                                ft.ListTile(
+                                                    leading=ft.Icon(ft.Icons.DIRECTIONS_CAR),
+                                                    title=ft.Text("Motorsport Manager"),
+                                                    subtitle=ft.Text("Arquivos")
+                                                ),
+
+                                                ft.Row(
+                                                    [btn_sel_MM],
+                                                    alignment=ft.MainAxisAlignment.END
+                                                )
+                                            ]
+                                        ),
+
+                                        width=230,
+                                        padding=10
+                                    )
                                 )
                             ],
 
@@ -264,6 +361,19 @@ def main(page: ft.Page):
                 icon=ft.Icons.ARROW_BACK,
                 on_click=lambda _: page.go("/")
             )
+
+            botoes_dashboard = [btn_ligar_sock]
+
+            if jogo_atual == "Motorsport Manager":
+
+                btn_limpar_logs = ft.ElevatedButton(
+                    text="🧹 Limpar Logs",
+                    bgcolor=ft.Colors.ORANGE_700,
+                    color=ft.Colors.WHITE,
+                    on_click=limpar_logs
+    )
+
+                botoes_dashboard.append(btn_limpar_logs)
 
             page.views.append(
                 ft.View(
@@ -299,7 +409,8 @@ def main(page: ft.Page):
                                     ft.Container(height=30),
 
                                     ft.Row(
-                                        [btn_ligar_sock],
+                                        botoes_dashboard,
+                                        spacing=20
                                                                             )
                                 ]
                             ),
@@ -338,7 +449,7 @@ def main(page: ft.Page):
 
     def ir_para_dashboard(nome_jogo):
 
-        global jogo_atual
+        nonlocal jogo_atual
 
         jogo_atual = nome_jogo
 
