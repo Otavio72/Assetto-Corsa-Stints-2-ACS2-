@@ -1,6 +1,7 @@
 import os
 import shutil
 import time
+import json
 
 # --- CONFIGURAÇÃO ---
 caminho_jogo = r"C:\Games\Motorsport Manager"
@@ -21,7 +22,10 @@ piloto2 = ""
 # Cria pasta se não existir
 os.makedirs(caminho_projeto, exist_ok=True)
 
-print("🏎️ Bot de Captura ACS 2: Ativado!")
+print(
+        "🏎️ Bot de Captura ACS 2: Ativado!",
+        flush=True
+    )
 
 # --- MAPAS ---
 TeamDriverMAPA = {
@@ -48,29 +52,41 @@ TrackSessionMAPA = {
 while True:
     arquivos = [f for f in os.listdir(caminho_jogo) if f.endswith(".csv")]
 
-    if not arquivos:
-        timeout_maximo += 1
-        time.sleep(1)
+    #if not arquivos:
+     #   timeout_maximo += 1
+      #  time.sleep(1)
 
-        if timeout_maximo <= 1200:
-            print(f"⏳ Nada encontrado... {timeout_maximo}/1200s", end="\r")
-        else:
-            # Listamos tudo o que existe dentro do diretório
-            for item in os.listdir(caminho_projeto):
-                item_completo = os.path.join(caminho_projeto, item)
-                try:
-                    if os.path.isfile(item_completo) or os.path.islink(item_completo):
-                        os.unlink(item_completo)  # Apaga arquivo ou link simbólico
-                    elif os.path.isdir(item_completo):
-                        shutil.rmtree(item_completo) # Apaga subpasta e tudo dentro dela
-                except Exception as e:
-                    print(f"❌ Erro ao apagar {item}: {e}")
+        #if timeout_maximo <= 1200:
+         #   #print(f"⏳ Nada encontrado... {timeout_maximo}/1200s", end="\r")
+          #  print(
+           #         f"⏳ Nada encontrado... {timeout_maximo}/1200s", end="\r",
+            #3        flush=True
+             #   )
+       # else:
+        #    # Listamos tudo o que existe dentro do diretório
+         #   for item in os.listdir(caminho_projeto):
+          #      item_completo = os.path.join(caminho_projeto, item)
+           #     try:
+            #        if os.path.isfile(item_completo) or os.path.islink(item_completo):
+             #           os.unlink(item_completo)  # Apaga arquivo ou link simbólico
+              #      elif os.path.isdir(item_completo):
+               #         shutil.rmtree(item_completo) # Apaga subpasta e tudo dentro dela
+                #except Exception as e:
+                    #print(f"❌ Erro ao apagar {item}: {e}")
+                 #   print(
+                  #          f"❌ Erro ao apagar {item}: {e}",
+                   #         flush=True
+                    #    )
 
-            print("✨ Pasta limpa! Encerrando...")
-            break
-        continue
+            #print("✨ Pasta limpa! Encerrando...")
+            #print(
+             #   "✨ Pasta limpa! Encerrando...",
+              #  flush=True
+               # )
+            #break
+        #continue
 
-    timeout_maximo = 0
+    #timeout_maximo = 0
 
     for arquivo in arquivos:
         origem = os.path.join(caminho_jogo, arquivo)
@@ -167,23 +183,36 @@ while True:
 
                 # PILOTO 1
             if piloto1 and lap1 > ultimas_voltas.get(piloto1, -1):
-                    print(
-                        f"{dados_gerais['Driver name1']} | "
-                        f"{dados_gerais['Driver Team1']} | "
-                        f"Lap: {lap1} | "
-                        f"Last Lap: {dados_timing.get(piloto1, {}).get('Last Lap Time', 'N/A')}"
-                    )
+                    dataMMpiloto1 = {
+                        "NomePiloto": dados_gerais['Driver name1'],
+                        "NomeTime": dados_gerais['Driver Team1'],
+                        "Volta": lap1,
+                        "ultima_volta": dados_timing.get(piloto1, {}).get('Last Lap Time', 'N/A')
+                    }
+
                     ultimas_voltas[piloto1] = lap1
+
+                    
+                    print(
+                            json.dumps(dataMMpiloto1),
+                            flush=True
+                            )
 
                 # PILOTO 2
             if piloto2 and lap2 > ultimas_voltas.get(piloto2, -1):
-                    print(
-                        f"{dados_gerais['Driver name2']} | "
-                        f"{dados_gerais['Driver Team2']} | "
-                        f"Lap: {lap2} | "
-                        f"Last Lap: {dados_timing.get(piloto2, {}).get('Last Lap Time', 'N/A')}"
-                    )
+                    dataMMpiloto2 = {
+                        "NomePiloto": dados_gerais['Driver name2'],
+                        "NomeTime": dados_gerais['Driver Team2'],
+                        "Volta": lap2,
+                        "ultima_volta": dados_timing.get(piloto2, {}).get('Last Lap Time', 'N/A')
+                    }
+
                     ultimas_voltas[piloto2] = lap2
+                    
+                    print(
+                            json.dumps(dataMMpiloto2),
+                            flush=True
+                            )
                 
         except PermissionError:
             pass
