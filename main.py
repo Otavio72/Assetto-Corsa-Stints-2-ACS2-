@@ -6,45 +6,8 @@ import json
 import os
 import shutil
 
-# =========================================================================
-# 🧹 UTILITARIOS
-# =========================================================================
+
 caminho_projeto = "logs_capturados"
-
-def limpar_logs(e):
-
-    for item in os.listdir(caminho_projeto):
-
-        item_completo = os.path.join(
-            caminho_projeto,
-            item
-        )
-
-        try:
-
-            if os.path.isfile(item_completo):
-
-                os.unlink(item_completo)
-
-            elif os.path.isdir(item_completo):
-
-                shutil.rmtree(item_completo)
-
-        except Exception as erro:
-
-            print(
-                f"ERRO: {erro}",
-                flush=True
-            )
-
-    print(
-        "🧹 Logs apagados!",
-        flush=True
-    )
-
-# =========================================================================
-# ⚙️ SOCKETS
-# =========================================================================
 
 processo_socket = None
 dados_recebidos = {}
@@ -54,6 +17,58 @@ dados_recebidos = {}
 
 
 def main(page: ft.Page):
+
+# =========================================================================
+# 🧹 UTILITARIOS
+# =========================================================================
+
+    def limpar_logs(e):
+        for item in os.listdir(caminho_projeto):
+
+            item_completo = os.path.join(
+                caminho_projeto,
+                item
+            )
+
+            try:
+
+                if os.path.isfile(item_completo):
+
+                    os.unlink(item_completo)
+
+                elif os.path.isdir(item_completo):
+
+                    shutil.rmtree(item_completo)
+
+
+            except Exception as erro:
+
+                print(
+                    f"ERRO: {erro}",
+                    flush=True
+                )
+
+        #print(
+         #   "🧹 Logs apagados!",
+          #  flush=True
+        #)
+
+        # =====================================================
+        # ✅ STATUS VISUAL
+        # =====================================================
+
+        led_pacote.bgcolor = ft.Colors.BLUE_GREY_700
+
+        txt_status_socket.value = "Pasta logs: LIMPA"
+
+        txt_status_socket.color = ft.Colors.BLUE_GREY_200
+
+        page.update()
+
+        #print(
+         #   "🧹 Logs apagados!",
+          #  flush=True
+        #)
 
     def ler_output_socket():
         global dados_recebidos
@@ -68,21 +83,64 @@ def main(page: ft.Page):
             linha = linha.strip()
 
             # 🔥 MUDAR STATUS AO RECEBER DADOS
-            txt_status_socket.value = "Socket: RECEBENDO DADOS"
-            txt_status_socket.color = ft.Colors.GREEN_400
+            #txt_status_socket.value = "Socket: RECEBENDO DADOS"
+            #txt_status_socket.color = ft.Colors.GREEN_400
 
-            led_pacote.bgcolor = ft.Colors.GREEN_400
+            #led_pacote.bgcolor = ft.Colors.GREEN_400
 
-            page.update()
+            #page.update()
 
-            print("DADO RECEBIDO:", linha)
+            #print("DADO RECEBIDO:", linha)
 
             if linha.startswith("{"):
                 dados_recebidos = json.loads(linha)
-                print("JSON OK:", dados_recebidos)
+                #print("JSON OK:", dados_recebidos)
+                tipo = dados_recebidos.get("TYPE")
 
+                if tipo == "STATUS":
+                    code = dados_recebidos.get("CODE")
+                    msg = dados_recebidos.get("MSG")
+
+                    if code == "01":
+                        led_pacote.bgcolor = ft.Colors.ORANGE_400
+                        txt_status_socket.value = "Socket: AGUARDANDO DADOS"
+                        txt_status_socket.color = ft.Colors.ORANGE_400
+                        
+                    elif code == "02":
+                        led_pacote.bgcolor = ft.Colors.GREEN_400
+                        txt_status_socket.value = "Socket: RECEBENDO DADOS"
+                        txt_status_socket.color = ft.Colors.GREEN_400
+
+                    elif code == "03":
+                        led_pacote.bgcolor = ft.Colors.RED_400
+                        txt_status_socket.value = "Socket: TIMEOUT"
+                        txt_status_socket.color = ft.Colors.RED_400
+
+                    elif code == "00":
+                        led_pacote.bgcolor = ft.Colors.GREY_900
+                        txt_status_socket.value = f"Socket: {msg}"
+                        txt_status_socket.color = ft.Colors.RED_400
+
+                    elif code == "05":
+                        print("PISTA OK")
+
+                    elif code == "06":
+                        print("CARRO OK")
+                    
+                    elif code == "07":
+                        print("TELEMETRIA OK")
+
+                    #elif limpeza_status == True:
+                     #   led_pacote.bgcolor = ft.Colors.BLUE_GREY_700
+                      #  txt_status_socket.value = f"Pasta logs: LIMPA"
+                       # txt_status_socket.color = ft.Colors.BLUE_GREY_700
+                        # limpeza_status = False
+                        
+            
             else:
                 print("LOG:", linha)
+            
+            page.update()
 
     def IniciarAC():
         global processo_socket
@@ -192,10 +250,10 @@ def main(page: ft.Page):
             btn_ligar_sock.text = "DESLIGAR COLETOR"
             btn_ligar_sock.bgcolor = ft.Colors.RED_700
 
-            txt_status_socket.value = "Socket: AGUARDANDO DADOS..."
-            txt_status_socket.color = ft.Colors.AMBER_400
+            txt_status_socket.value = "Socket: INICIADO"
+            txt_status_socket.color = ft.Colors.YELLOW
 
-            led_pacote.bgcolor = ft.Colors.AMBER_400
+            led_pacote.bgcolor = ft.Colors.YELLOW
         
         else:
 
