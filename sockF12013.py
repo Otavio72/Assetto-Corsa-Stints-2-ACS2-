@@ -81,6 +81,15 @@ def descobrir_pista(pico_atual):
             if abs(pico_atual - dna) < 2.0:
 
                 return nome_pista
+    
+    print(
+        json.dumps({
+        "TYPE": "STATUS",
+        "CODE": "00",
+        "MSG": "PISTA_DESCONHECIDA"
+            }),
+        flush=True
+                    )
 
     return "PISTA_DESCONHECIDA"
 
@@ -93,7 +102,15 @@ def buscar_carro(pista, valor_box):
     caminho = f"MapeamentosF12013/Carros/boxes_{pista.lower()}.txt"
 
     if not os.path.exists(caminho):
-        return "Carro Desconhecido"
+            print(
+                json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "00",
+                    "MSG": "Carro Desconhecido"
+                    }),
+                    flush=True
+                    )
+            return "Carro Desconhecido"
 
     with open(caminho, "r") as f:
 
@@ -126,8 +143,16 @@ def buscar_carro(pista, valor_box):
 
             except Exception as e:
 
-                print(f"ERRO NA LINHA: {linha}")
-                print(e)
+                #print(f"ERRO NA LINHA: {linha}")
+                #print(e)
+                print(
+                json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "00",
+                    "MSG": f"Erro inesperado: {e} // ERRO NA LINHA: {linha}"
+                    }),
+                    flush=True
+                    )
 
     return "Carro Desconhecido"
 
@@ -142,15 +167,35 @@ def PegarCarroEpista():
     v_antigo = 0.0
 
     #print("🛰️ Aguardando estabilização no Box...")
+    #print(
+     #       '🛰️ Aguardando estabilização no Box...', end="",
+      #      flush=True
+       # )
+    
     print(
-            '🛰️ Aguardando estabilização no Box...', end="",
-            flush=True
-        )
+    json.dumps({
+        "TYPE": "STATUS",
+        "CODE": "01",
+        "MSG": "SockF12013 iniciado"
+    }),
+    flush=True
+)
 
     try:
         while True:
 
             data, addr = sock.recvfrom(2048)
+
+            if data:
+                print(
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "02",
+                            "MSG": "Recebendo Dados"
+                        }),
+                        flush=True
+                    )
+
 
             pacote = struct.unpack(
                 'f' * (len(data) // 4),
@@ -177,18 +222,18 @@ def PegarCarroEpista():
 
                     valor_box_capturado = valor_atual
 
-                    print(
-                        f"\n✅ [BOX OK] Valor: {valor_box_capturado:.5f}",
-                        flush=True
-                    )
+                    #print(
+                     #   f"\n✅ [BOX OK] Valor: {valor_box_capturado:.5f}",
+                      #  flush=True
+                    #)
 
                 else:
 
-                    print(
-                        f"\r⏳ Sincronizando: {count_val}/15",
-                        end="",
-                        flush=True
-                    )
+                    #print(
+                     #   f"\r⏳ Sincronizando: {count_val}/15",
+                      #  end="",
+                       # flush=True
+                    #)
 
                     continue
 
@@ -211,8 +256,17 @@ def PegarCarroEpista():
 
                     pista_confirmada = pista
 
+                    #print(
+                     #   f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}",
+                      #  flush=True
+                    #)
+
                     print(
-                        f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}",
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "05",
+                            "MSG": f"\n🌍 [PISTA OK] {pista_confirmada}"
+                        }),
                         flush=True
                     )
 
@@ -225,8 +279,17 @@ def PegarCarroEpista():
                         valor_box_capturado
                     )
 
+                    #print(
+                     #   f"🏎️ [CARRO OK] Identificado: {carro_nome}",
+                      #  flush=True
+                    #)
+
                     print(
-                        f"🏎️ [CARRO OK] Identificado: {carro_nome}",
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "06",
+                            "MSG": f"🏎️ [CARRO OK] Identificado: {carro_nome}"
+                        }),
                         flush=True
                     )
 
@@ -290,18 +353,42 @@ def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
                     json.dumps(DataF12013),
                     flush=True
                     )
+                
+                print(
+                    json.dumps({
+                        "TYPE": "STATUS",
+                        "CODE": "07",
+                        "MSG": f"\n🌍 [TELEMETRIA OK]"
+                        }),
+                        flush=True
+                    )
 
             ultima_volta = tempo_lap
 
         except socket.timeout:
             # 🚨 O ALARME TOCOU! Se passaram 5 segundos de silêncio absoluto no rádio
-            print("\n🛑 [ACS 2] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado).")
-            print("FECHOU")
+            #print("\n🛑 [ACS 2] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado).")
+            print(
+                json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "03",
+                    "MSG": "🛑 [TIMEOUT] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado)."
+                    }),
+                    flush=True
+                    )
             sock.close() # Fecha a conexão limpa
             break # 🎯 Quebra o loop e encerra o stint com sucesso!
             
         except Exception as e:
-            print(f"Erro inesperado: {e}")
+            #print(f"Erro inesperado: {e}")
+            print(
+                json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "00",
+                    "MSG": f"Erro inesperado: {e}"
+                    }),
+                    flush=True
+                    )
             sock.close()
             break
 
