@@ -23,9 +23,13 @@ piloto2 = ""
 os.makedirs(caminho_projeto, exist_ok=True)
 
 print(
-        "🏎️ Bot de Captura ACS 2: Ativado!",
-        flush=True
-    )
+    json.dumps({
+        "TYPE": "STATUS",
+        "CODE": "01",
+        "MSG": "SockMotorsportManager iniciado"
+    }),
+    flush=True
+)
 
 # --- MAPAS ---
 TeamDriverMAPA = {
@@ -198,6 +202,24 @@ while True:
                             flush=True
                             )
 
+                    print(
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "02",
+                            "MSG": "Recebendo Dados PILOTO 1"
+                        }),
+                        flush=True
+                    )
+
+                    print(
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "07",
+                            "MSG": "Recebendo Dados PILOTO 1"
+                        }),
+                        flush=True
+                    )
+
                 # PILOTO 2
             if piloto2 and lap2 > ultimas_voltas.get(piloto2, -1):
                     dataMMpiloto2 = {
@@ -213,11 +235,37 @@ while True:
                             json.dumps(dataMMpiloto2),
                             flush=True
                             )
+                    
+                    print(
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "02",
+                            "MSG": "Recebendo Dados PILOTO 2"
+                        }),
+                        flush=True
+                    )
+
+                    print(
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "07",
+                            "MSG": "Recebendo Dados PILOTO 2"
+                        }),
+                        flush=True
+                    )
                 
         except PermissionError:
             pass
         except Exception as e:
-            print(f"❌ Erro: {e}")
+            #print(f"❌ Erro: {e}")
+            print(
+                json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "00",
+                    "MSG": f"Erro inesperado: {e}"
+                    }),
+                    flush=True
+                    )
 
     # sleep FORA do loop de arquivos (importante)
     time.sleep(1)
