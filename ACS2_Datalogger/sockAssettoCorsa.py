@@ -39,8 +39,11 @@ def processar_handshake(data):
     layout = limpar(unpacked[5])
     
     
-    info = f"carro: {carro} pista: {pista} layout: {layout}"
-    return info
+    return {
+        "Carro": carro,
+        "Pista": pista,
+        "Layout": layout
+    }
 
 def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
 # =========================
@@ -95,10 +98,12 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
                 ultima_volta = lapCount
 
                 DadosAssettoCorsa = {
-                "info_sessao": info_sessao,
-                "lastLap": lastLap,
-                "ultima_volta": ultima_volta,
-                "bestLap": bestLap
+                    "Carro": info_sessao["Carro"],
+                    "Pista": info_sessao["Pista"],
+                    "Layout": info_sessao["Layout"],
+                    "Tempo": round(lastLap / 1000, 3),
+                    "VoltaAtual": ultima_volta,
+                    "BestLap": bestLap
                 }
 
                 print(

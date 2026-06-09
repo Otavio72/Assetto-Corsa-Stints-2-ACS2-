@@ -8,7 +8,7 @@ import shutil
 
 
 caminho_projeto = "logs_capturados"
-
+ultimo_log = ""
 processo_socket = None
 dados_recebidos = {}
 
@@ -71,7 +71,7 @@ def main(page: ft.Page):
         #)
 
     def ler_output_socket():
-        global dados_recebidos
+        global dados_recebidos, ultimo_log
         
         while True:
 
@@ -90,45 +90,75 @@ def main(page: ft.Page):
 
             #page.update()
 
-            #print("DADO RECEBIDO:", linha)
+            print("DADO RECEBIDO:", linha)
 
             if linha.startswith("{"):
                 dados_recebidos = json.loads(linha)
                 #print("JSON OK:", dados_recebidos)
                 tipo = dados_recebidos.get("TYPE")
+                code = dados_recebidos.get("CODE")
+                msg = dados_recebidos.get("MSG")
+
 
                 if tipo == "STATUS":
-                    code = dados_recebidos.get("CODE")
+
                     msg = dados_recebidos.get("MSG")
 
-                    if code == "01":
-                        led_pacote.bgcolor = ft.Colors.ORANGE_400
-                        txt_status_socket.value = "Socket: AGUARDANDO DADOS"
-                        txt_status_socket.color = ft.Colors.ORANGE_400
+                    if msg != ultimo_log:
+
+                        terminal_logs.controls.append(
+                            ft.Text(
+                                f"[STATUS] {msg}"
+                            )
+                        )
+
+                        ultimo_log = msg
+                else:
+
+                    if "Carro" in dados_recebidos:
+
+                        txt_carro.value = dados_recebidos["Carro"]
+
+                    if "Pista" in dados_recebidos:
+
+                        txt_pista.value = dados_recebidos["Pista"]
+
+                    if "Tempo" in dados_recebidos:
+
+                        txt_ultima_volta.value = f"{dados_recebidos['Tempo']:.3f}"
+
+                #if tipo == "STATUS":
+                 #   code = dados_recebidos.get("CODE")
+                  #  msg = dados_recebidos.get("MSG")
+
+                if code == "01":
+                    led_pacote.bgcolor = ft.Colors.ORANGE_400
+                    txt_status_socket.value = "Socket: AGUARDANDO DADOS"
+                    txt_status_socket.color = ft.Colors.ORANGE_400
                         
-                    elif code == "02":
-                        led_pacote.bgcolor = ft.Colors.GREEN_400
-                        txt_status_socket.value = "Socket: RECEBENDO DADOS"
-                        txt_status_socket.color = ft.Colors.GREEN_400
+                elif code == "02":
+                    led_pacote.bgcolor = ft.Colors.GREEN_400
+                    txt_status_socket.value = "Socket: RECEBENDO DADOS"
+                    txt_status_socket.color = ft.Colors.GREEN_400
 
-                    elif code == "03":
-                        led_pacote.bgcolor = ft.Colors.RED_400
-                        txt_status_socket.value = "Socket: TIMEOUT"
-                        txt_status_socket.color = ft.Colors.RED_400
+                elif code == "03":
+                    led_pacote.bgcolor = ft.Colors.RED_400
+                    txt_status_socket.value = "Socket: TIMEOUT"
+                    txt_status_socket.color = ft.Colors.RED_400
 
-                    elif code == "00":
-                        led_pacote.bgcolor = ft.Colors.GREY_900
-                        txt_status_socket.value = f"Socket: {msg}"
-                        txt_status_socket.color = ft.Colors.RED_400
+                elif code == "00":
+                    led_pacote.bgcolor = ft.Colors.GREY_900
+                    txt_status_socket.value = f"Socket: {msg}"
+                    txt_status_socket.color = ft.Colors.RED_400
 
-                    elif code == "05":
-                        print("PISTA OK")
+                elif code == "05":
+                    print("PISTA OK")
 
-                    elif code == "06":
-                        print("CARRO OK")
+                elif code == "06":
+                    print("CARRO OK")
                     
-                    elif code == "07":
-                        print("TELEMETRIA OK")
+                elif code == "07":
+                    print("TELEMETRIA OK")
 
                     #elif limpeza_status == True:
                      #   led_pacote.bgcolor = ft.Colors.BLUE_GREY_700
@@ -137,8 +167,8 @@ def main(page: ft.Page):
                         # limpeza_status = False
                         
             
-            else:
-                print("LOG:", linha)
+                else:
+                    print("LOG:", linha)
             
             page.update()
 
@@ -200,6 +230,66 @@ def main(page: ft.Page):
     page.padding = 20
 
     jogo_atual = ""
+
+    txt_carro = ft.Text(
+            "Aguardando...",
+            size=16,
+            weight=ft.FontWeight.BOLD
+        )
+
+    txt_ultima_volta = ft.Text(
+            "--:--.---"
+        )
+
+    txt_pista = ft.Text(
+            "Aguardando..."
+        )
+
+    terminal_logs = ft.ListView(
+            expand=True,
+            spacing=2,
+            auto_scroll=True
+        )
+
+    painel_carro = ft.Container(
+    content=ft.Column(
+        [
+            ft.Text("🏎️ CARRO"),
+            txt_carro,
+            ft.Divider(),
+            ft.Text("⏱️ Última volta"),
+            txt_ultima_volta
+        ]
+    ),
+    width=180,
+    height=220,
+    padding=10,
+    border=ft.border.all(1, ft.Colors.WHITE24),
+    border_radius=10
+)
+    painel_terminal = ft.Container(
+    content=terminal_logs,
+    width=400,
+    height=220,
+    padding=10,
+    bgcolor=ft.Colors.BLACK87,
+    border=ft.border.all(1, ft.Colors.WHITE24),
+    border_radius=10
+)
+    
+    painel_pista = ft.Container(
+    content=ft.Column(
+        [
+            ft.Text("🌍 PISTA"),
+            txt_pista
+        ]
+    ),
+    width=180,
+    height=220,
+    padding=10,
+    border=ft.border.all(1, ft.Colors.WHITE24),
+    border_radius=10
+)
 
     # =========================================================================
     # 🚥 COMPONENTES
@@ -269,6 +359,7 @@ def main(page: ft.Page):
             led_pacote.bgcolor = ft.Colors.RED_400
 
         page.update()
+        
 
     # =========================================================================
     # 🔘 BOTÃO
@@ -485,7 +576,21 @@ def main(page: ft.Page):
                             bgcolor=ft.Colors.BLACK26
                         ),
 
-                        ft.Container(height=10),
+                        ft.Container(height=5),
+
+                        ft.Container(height=5),
+
+                            ft.Row(
+                                [
+                                    painel_carro,
+                                    painel_terminal,
+                                    painel_pista
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                spacing=20
+                            ),
+
+                            ft.Container(height=10),
 
                         ft.Text(
                             "Dica: Ligue o coletor e depois abra o simulador na pista.",

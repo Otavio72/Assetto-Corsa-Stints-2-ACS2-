@@ -1,0 +1,212 @@
+import socket
+import struct
+import time
+import sys
+import json
+
+def processar_handshake(data):
+    if len(data) != 408:
+        #print(f"⚠️ Pacote inesperado: {len(data)} bytes")
+        #print(
+        #f"⚠️ Pacote inesperado: {len(data)} bytes",
+        #flush=True
+        #)
+        print(
+            json.dumps({
+            "TYPE": "STATUS",
+            "CODE": "00",
+            "MSG": f"⚠️ Pacote inesperado: {len(data)} bytes"
+            }),
+            flush=True
+            )
+        return
+
+    # Formato: 100 bytes string, 100 bytes string, int, int, 100 bytes string, 100 bytes string
+    # '<' = Little Endian
+    # '100s' = String de 100 bytes
+    # 'i' = Inteiro de 4 bytes
+    formato = '<100s100sii100s100s'
+    
+    unpacked = struct.unpack(formato, data)
+    
+    # Função interna para limpar o lixo do UTF-16
+    def limpar(texto_bruto):
+        return texto_bruto.decode('utf-16-le', errors='ignore').split('\x00')[0].strip()
+
+
+    carro = limpar(unpacked[0])
+    pista = limpar(unpacked[4])
+    layout = limpar(unpacked[5])
+    
+    
+    return {
+        "Carro": carro,
+        "Pista": pista,
+        "Layout": layout
+    }
+
+def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
+# =========================
+# 2. SUBSCRIBE (UPDATE)
+# =========================
+    subscribe = struct.pack('iii', 1, 1, 1)
+    sock.sendto(subscribe, (UDP_IP, UDP_PORT))
+    #print("Subscribe enviado")
+    #print(
+     #   "Subscribe enviado",
+      #  flush=True
+       # )
+
+# =========================
+# 3. RECEBER DADOS
+# =========================
+    ultima_volta = -1  # Começa em -1 para capturar a volta 0 assim que começar
+    #print("🚀 ACS 2: Monitorando Assetto Corsa... (Aguardando fechamento de volta)")
+    #print(
+     #   "🚀 ACS 2: Monitorando Assetto Corsa... (Aguardando fechamento de volta)",
+      #  flush=True
+       # )
+
+
+    while True:
+        # 👇 HANDSHAKE RESPONSE
+        base = 8
+    
+        try:
+            data, addr = sock.recvfrom(4096)
+
+            if data:
+                print(
+                        json.dumps({
+                            "TYPE": "STATUS",
+                            "CODE": "02",
+                            "MSG": "Recebendo Dados"
+                        }),
+                        flush=True
+                    )
+                
+            #size = len(data)
+            #unpacked = struct.unpack('<50s50sii50s50s', data[:208])
+            lapCount = struct.unpack_from('<i', data, base + 44)[0]
+            
+            if lapCount != ultima_volta:
+                #speed_kmh = struct.unpack_from('<f', data, 8)[0]
+                #lapTime  = struct.unpack_from('<i', data, base + 32)[0]
+                lastLap  = struct.unpack_from('<i', data, base + 36)[0]
+                bestLap  = struct.unpack_from('<i', data, base + 40)[0]
+                
+                ultima_volta = lapCount
+
+                DadosAssettoCorsa = {
+                    "Carro": info_sessao["Carro"],
+                    "Pista": info_sessao["Pista"],
+                    "Layout": info_sessao["Layout"],
+                    "Tempo": round(lastLap / 1000, 3),
+                    "VoltaAtual": ultima_volta,
+                    "BestLap": bestLap
+                }
+
+                print(
+                    json.dumps(DadosAssettoCorsa),
+                    flush=True
+                    )
+                
+                print(
+                    json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "07",
+                    "MSG": "🌍 [TELEMETRIA OK]"
+                    }),
+                    flush=True
+                    )
+
+        except struct.error as e:
+                #print("Erro ao decodificar handshake:", e)
+                #print(
+                #"Erro ao decodificar handshake:", e,
+                #flush=True
+                #)
+                print(
+                json.dumps({
+                    "TYPE": "STATUS",
+                    "CODE": "00",
+                    "MSG": f"Erro ao decodificar handshake: {e}"
+                    }),
+                    flush=True
+                    )
+
+# --- CONFIGURAÇÃO INICIAL ---
+UDP_IP = "127.0.0.1"
+UDP_PORT = 9996
+
+#print("🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)")
+print(
+    json.dumps({
+    "TYPE": "STATUS",
+    "CODE": "01",
+    "MSG": "SockAssettoCorsa iniciado"
+    }),
+    flush=True
+        )
+
+while True:
+    # Criamos o socket DENTRO do loop de espera para garantir que ele esteja limpo
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # O PULO DO GATO REFORÇADO 🐈
+    if hasattr(socket, 'SIO_UDP_CONNRESET'):
+        sock.ioctl(socket.SIO_UDP_CONNRESET, False)
+    
+    try:
+        sock.settimeout(1.0) # Espera 1 seg por tentativa
+        handshake = struct.pack('iii', 1, 1, 0)
+        sock.sendto(handshake, (UDP_IP, UDP_PORT))
+        
+        data, addr = sock.recvfrom(1024)
+        
+        if len(data) == 408:
+            info_sessao = processar_handshake(data)
+            if info_sessao:
+                SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT)
+                sock.settimeout(30)  # Se o jogo silenciar por 30 segundos, ativa o alarme!
+
+    except socket.timeout:
+        # 🚨 A FLAG QUE VOCÊ QUERIA! 
+        # Se chegou aqui, significa que o jogo fechou ou parou de mandar dados.
+        #print("\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!")
+        #print(
+        #"\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!",
+        #flush=True
+        #)
+
+        print(
+            json.dumps({
+            "TYPE": "STATUS",
+            "CODE": "03",
+            "MSG": "🛑 [TIMEOUT] Assetto Corsa parou de enviar pacotes (Jogo pausado, no menu ou fechado)."
+            }),
+            flush=True
+            )
+        
+        sock.close()  # Fecha o socket atual de forma limpa
+        
+        # Aqui você decide o que o ACS 2 faz:
+        # Se quiser fechar o programa todo:
+        sys.exit() 
+        
+        # Se quiser salvar os dados e voltar a esperar um novo jogo abrir:
+        # break # (sai desse loop e vai pra lógica de reiniciar)
+    except (ConnectionResetError):
+        # O ConnectionResetError é o WinError 10054
+        # Se der esse erro, a gente só ignora e tenta de novo
+        sock.close() # Fecha o socket atual pra abrir um novo na próxima volta
+        time.sleep(1) # Espera um pouco pra não fritar o processador
+        continue
+    except KeyboardInterrupt:
+        #print("\nSaindo...")
+        print(
+        "\nSaindo...",
+        flush=True
+        )
+        break
+

@@ -1,0 +1,11 @@
+# === MAPEAMENTO PROVÁVEL GRID AUTOSPORT ===
+    
+    # Os que você já validou
+    #velocidade_kmh = telemetria[7] * 3.6
+    #tempo_volta = telemetria[1]
+    #volta_numero = int(telemetria[3])
+    #ACELERADOR teste1 = telemetria[29]
+    # FREIO teste2 = telemetria[31]
+    # ESTERCAMENTO teste2 = telemetria[30]
+    # Marchas teste2 = telemetria[33]
+    # embreagem  teste1 = telemetria[32]

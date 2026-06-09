@@ -90,6 +90,7 @@ while True:
             #break
         #continue
 
+    
     #timeout_maximo = 0
 
     for arquivo in arquivos:
@@ -187,21 +188,30 @@ while True:
 
                 # PILOTO 1
             if piloto1 and lap1 > ultimas_voltas.get(piloto1, -1):
+                    try:
+                        tempo = float(dados_timing.get(piloto1, {}).get('Last Lap Time', -1))
+                        pista = dados_pneus.get("Circuit Name", "Desconhecida")
+                        
+                    except:
+                        tempo = -1
+
                     dataMMpiloto1 = {
                         "NomePiloto": dados_gerais['Driver name1'],
-                        "NomeTime": dados_gerais['Driver Team1'],
+                        "Carro": dados_gerais['Driver Team1'],
                         "Volta": lap1,
-                        "ultima_volta": dados_timing.get(piloto1, {}).get('Last Lap Time', 'N/A')
+                        "Tempo": tempo,
+                        "Pista": pista
                     }
 
                     ultimas_voltas[piloto1] = lap1
 
-                    
+        
+
                     print(
                             json.dumps(dataMMpiloto1),
                             flush=True
                             )
-
+                    
                     print(
                         json.dumps({
                             "TYPE": "STATUS",
@@ -211,22 +221,31 @@ while True:
                         flush=True
                     )
 
-                    print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "07",
-                            "MSG": "Recebendo Dados PILOTO 1"
-                        }),
-                        flush=True
-                    )
+                    #print(
+                     #   json.dumps({
+                      #      "TYPE": "STATUS",
+                       #     "CODE": "07",
+                        #    "MSG": "Recebendo Dados PILOTO 1"
+                        #}),
+                        #flush=True
+                    #)
+
+                    
 
                 # PILOTO 2
             if piloto2 and lap2 > ultimas_voltas.get(piloto2, -1):
+                    try:
+                        tempo = float(dados_timing.get(piloto2, {}).get('Last Lap Time', -1))
+                        pista = dados_pneus.get("Circuit Name", "Desconhecida")
+                    except:
+                        tempo = -1
+
                     dataMMpiloto2 = {
                         "NomePiloto": dados_gerais['Driver name2'],
                         "NomeTime": dados_gerais['Driver Team2'],
                         "Volta": lap2,
-                        "ultima_volta": dados_timing.get(piloto2, {}).get('Last Lap Time', 'N/A')
+                        "Tempo": tempo,
+                        "Pista": pista
                     }
 
                     ultimas_voltas[piloto2] = lap2
@@ -245,14 +264,14 @@ while True:
                         flush=True
                     )
 
-                    print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "07",
-                            "MSG": "Recebendo Dados PILOTO 2"
-                        }),
-                        flush=True
-                    )
+                    #print(
+                    #    json.dumps({
+                     #       "TYPE": "STATUS",
+                      #      "CODE": "07",
+                       #     "MSG": "Recebendo Dados PILOTO 2"
+                        #}),
+                        #flush=True
+                    #)
                 
         except PermissionError:
             pass
@@ -266,6 +285,10 @@ while True:
                     }),
                     flush=True
                     )
+
+
+
+            
 
     # sleep FORA do loop de arquivos (importante)
     time.sleep(1)
