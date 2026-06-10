@@ -342,6 +342,7 @@ def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
                 voltas_restantes = total_laps - contador_voltas
 
                 DataF12013 = {
+                    "Jogo":"F1 2013",
                     "Tempo": ultima_volta_fechada,
                     "VoltaAtual": volta_atual,
                     "Restantes": voltas_restantes,
@@ -349,20 +350,20 @@ def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
                     "Carro": carro_nome
                 }
 
-                print(
-                    json.dumps(DataF12013),
-                    flush=True
-                    )
+                #print(
+                 #   json.dumps(DataF12013),
+                  #  flush=True
+                   # )
                 
                 print(
                     json.dumps({
-                        "TYPE": "STATUS",
-                        "CODE": "07",
-                        "MSG": f"\n🌍 [TELEMETRIA OK]"
-                        }),
-                        flush=True
+                    "TYPE": "TELEMETRIA",
+                    "CODE": "07",
+                    "MSG": "[TELEMETRIA OK]",
+                    "DATA": DataF12013
+                    }),
+                    flush=True
                     )
-
             ultima_volta = tempo_lap
 
         except socket.timeout:

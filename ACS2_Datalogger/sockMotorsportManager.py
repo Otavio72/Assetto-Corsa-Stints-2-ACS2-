@@ -207,19 +207,20 @@ while True:
 
         
 
-                    print(
-                            json.dumps(dataMMpiloto1),
-                            flush=True
-                            )
+                    #print(
+                     #       json.dumps(dataMMpiloto1),
+                      #      flush=True
+                       #     )
                     
-                    print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "02",
-                            "MSG": "Recebendo Dados PILOTO 1"
-                        }),
-                        flush=True
-                    )
+                    #print(
+                     #   json.dumps({
+                      #      "TYPE": "TELEMETRIA",
+                       #     "CODE": "07",
+                        #    "MSG": "Recebendo Dados PILOTO 1",
+                         #   "DATA": dataMMpiloto1
+                        #}),
+                        #flush=True
+                    #)
 
                     #print(
                      #   json.dumps({
@@ -250,20 +251,25 @@ while True:
 
                     ultimas_voltas[piloto2] = lap2
                     
-                    print(
-                            json.dumps(dataMMpiloto2),
-                            flush=True
-                            )
+                    #print(
+                     #       json.dumps(dataMMpiloto2),
+                      #      flush=True
+                       #     )
                     
                     print(
                         json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "02",
-                            "MSG": "Recebendo Dados PILOTO 2"
+                            "TYPE": "TELEMETRIA",
+                            "CODE": "08",
+                            "MSG": "Recebendo Dados",
+                            "DATA":{
+                                "Jogo":"Motorsport Manager",
+
+                                "Piloto1": dataMMpiloto1,
+                                "Piloto2": dataMMpiloto2
+                            }
                         }),
                         flush=True
                     )
-
                     #print(
                     #    json.dumps({
                      #       "TYPE": "STATUS",

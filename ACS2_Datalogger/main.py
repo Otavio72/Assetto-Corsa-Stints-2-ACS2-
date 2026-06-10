@@ -5,14 +5,32 @@ import threading
 import json
 import os
 import shutil
-
+import requests
 
 caminho_projeto = "logs_capturados"
 ultimo_log = ""
 processo_socket = None
 dados_recebidos = {}
 
+def EnviarDjango(dados_telemetria):
 
+    #global dados_recebidos
+
+    if not dados_telemetria:
+        return
+
+    try:
+
+        r = requests.post(
+            "http://127.0.0.1:8000/api/teste/",
+            json=dados_telemetria,
+            timeout=5
+        )
+
+        print(f"Django respondeu: {r.status_code}")
+
+    except:
+        print(f"erro")
 
 
 
@@ -90,7 +108,7 @@ def main(page: ft.Page):
 
             #page.update()
 
-            print("DADO RECEBIDO:", linha)
+           # print("DADO RECEBIDO:", linha)
 
             if linha.startswith("{"):
                 dados_recebidos = json.loads(linha)
@@ -98,7 +116,7 @@ def main(page: ft.Page):
                 tipo = dados_recebidos.get("TYPE")
                 code = dados_recebidos.get("CODE")
                 msg = dados_recebidos.get("MSG")
-
+                #Dadosidget = dados_recebidos["DATA"]
 
                 if tipo == "STATUS":
 
@@ -113,62 +131,72 @@ def main(page: ft.Page):
                         )
 
                         ultimo_log = msg
-                else:
 
-                    if "Carro" in dados_recebidos:
-
-                        txt_carro.value = dados_recebidos["Carro"]
-
-                    if "Pista" in dados_recebidos:
-
-                        txt_pista.value = dados_recebidos["Pista"]
-
-                    if "Tempo" in dados_recebidos:
-
-                        txt_ultima_volta.value = f"{dados_recebidos['Tempo']:.3f}"
-
-                #if tipo == "STATUS":
-                 #   code = dados_recebidos.get("CODE")
-                  #  msg = dados_recebidos.get("MSG")
-
-                if code == "01":
-                    led_pacote.bgcolor = ft.Colors.ORANGE_400
-                    txt_status_socket.value = "Socket: AGUARDANDO DADOS"
-                    txt_status_socket.color = ft.Colors.ORANGE_400
+                    if code == "01":
+                        led_pacote.bgcolor = ft.Colors.ORANGE_400
+                        txt_status_socket.value = "Socket: AGUARDANDO DADOS"
+                        txt_status_socket.color = ft.Colors.ORANGE_400
                         
-                elif code == "02":
-                    led_pacote.bgcolor = ft.Colors.GREEN_400
-                    txt_status_socket.value = "Socket: RECEBENDO DADOS"
-                    txt_status_socket.color = ft.Colors.GREEN_400
+                    elif code == "02":
+                        led_pacote.bgcolor = ft.Colors.GREEN_400
+                        txt_status_socket.value = "Socket: RECEBENDO DADOS"
+                        txt_status_socket.color = ft.Colors.GREEN_400
 
-                elif code == "03":
-                    led_pacote.bgcolor = ft.Colors.RED_400
-                    txt_status_socket.value = "Socket: TIMEOUT"
-                    txt_status_socket.color = ft.Colors.RED_400
+                    elif code == "03":
+                        led_pacote.bgcolor = ft.Colors.RED_400
+                        txt_status_socket.value = "Socket: TIMEOUT"
+                        txt_status_socket.color = ft.Colors.RED_400
 
-                elif code == "00":
-                    led_pacote.bgcolor = ft.Colors.GREY_900
-                    txt_status_socket.value = f"Socket: {msg}"
-                    txt_status_socket.color = ft.Colors.RED_400
+                    elif code == "00":
+                        led_pacote.bgcolor = ft.Colors.GREY_900
+                        txt_status_socket.value = f"Socket: {msg}"
+                        txt_status_socket.color = ft.Colors.RED_400
 
-                elif code == "05":
-                    print("PISTA OK")
+                    elif code == "05":
+                        print("PISTA OK")
 
-                elif code == "06":
-                    print("CARRO OK")
+                    elif code == "06":
+                        print("CARRO OK")
+
                     
-                elif code == "07":
-                    print("TELEMETRIA OK")
+                elif tipo == "TELEMETRIA":
 
-                    #elif limpeza_status == True:
-                     #   led_pacote.bgcolor = ft.Colors.BLUE_GREY_700
-                      #  txt_status_socket.value = f"Pasta logs: LIMPA"
-                       # txt_status_socket.color = ft.Colors.BLUE_GREY_700
-                        # limpeza_status = False
+                    if code == "07":
+                        dados_telemetria = dados_recebidos["DATA"]
+                        if "Carro" in dados_telemetria:
+                            txt_carro.value = dados_telemetria["Carro"]
+
+                        if "Pista" in dados_telemetria:
+                            txt_pista.value = dados_telemetria["Pista"]
+
+                        if "Tempo" in dados_telemetria:
+                            txt_ultima_volta.value = f"{dados_telemetria['Tempo']:.3f}"
+
+                        EnviarDjango(dados_telemetria)
+                    
+                    elif code == "08":
+                        dados_telemetria = dados_recebidos["DATA"]
+                        piloto1 = dados_telemetria["Piloto1"]
+                        piloto2 = dados_telemetria["Piloto2"]
+
+                        if "NomeTime" in piloto1:
+                            txt_carro.value = piloto1["NomeTime"]
+                        elif "NomeTime" in piloto2:
+                            txt_carro.value = piloto2["NomeTime"]
                         
-            
-                else:
-                    print("LOG:", linha)
+                        if "Pista" in piloto1:
+                            txt_pista.value = piloto1["Pista"]
+                        elif "Pista" in piloto2:
+                            txt_pista.value = piloto2["Pista"]
+
+                        if "Tempo" in piloto1:
+                            txt_ultima_volta.value = piloto1["Tempo"]
+                        elif "Tempo" in piloto2:
+                            txt_ultima_volta.value = piloto2["Tempo"]
+                            
+                        EnviarDjango(dados_telemetria)
+
+                    #page.update()
             
             page.update()
 

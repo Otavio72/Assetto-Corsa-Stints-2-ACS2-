@@ -98,6 +98,7 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
                 ultima_volta = lapCount
 
                 DadosAssettoCorsa = {
+                    "Jogo":"Assetto Corsa",
                     "Carro": info_sessao["Carro"],
                     "Pista": info_sessao["Pista"],
                     "Layout": info_sessao["Layout"],
@@ -106,16 +107,17 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
                     "BestLap": bestLap
                 }
 
-                print(
-                    json.dumps(DadosAssettoCorsa),
-                    flush=True
-                    )
+                #print(
+                 #   json.dumps(DadosAssettoCorsa),
+                  #  flush=True
+                   # )
                 
                 print(
                     json.dumps({
-                    "TYPE": "STATUS",
+                    "TYPE": "TELEMETRIA",
                     "CODE": "07",
-                    "MSG": "🌍 [TELEMETRIA OK]"
+                    "MSG": "[TELEMETRIA OK]",
+                    "DATA": DadosAssettoCorsa
                     }),
                     flush=True
                     )
