@@ -1,0 +1,32 @@
+<!--Cabeçalho do modal do carrinho-->
+<div class="modal-header">
+    <h5 class="modal-title">Carrinho de Compras</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<!--Corpo do modal com os itens do carrinho-->
+<div class="modal-body">
+    <div id="conteudo-carrinho">
+        {% for item in itens_carrinho %}
+            <div>
+                <p><strong>{{ item.produto.nome }}</strong></p>
+                <p>R$ {{ item.produto.preco }} x {{ item.quantidade }} = R$ {{ item.total }}</p>
+                <p>{{ item.produto.tipo }}</p>
+                <a href="{% url 'remover_item_carrinho' item.id %}" class="btn btn-danger btn-sm">Remover</a>
+                <hr>
+            </div>
+        {% empty %}
+            <!--Caso o carrinho esteja vazio-->
+            <p>Seu carrinho está vazio.</p>
+        {% endfor %}
+    </div>
+
+    <!--Total da compra-->
+    <p><strong>Total: R$ {{ total }}</strong></p>
+</div>
+
+<!--Rodape do modal com ações-->
+<div class="modal-footer">
+    <button type="button" id="btnCarrinho" class="btn btn-outline-success" data-bs-dismiss="modal">Fechar</button>
+    <a href="{% url 'pagamento' %}" class="btn btn-outline-success">Finalizar Compra</a>
+</div>

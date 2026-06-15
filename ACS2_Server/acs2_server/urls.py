@@ -17,8 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from telemetry.views import teste
+from django.urls import path, include
+from telemetry import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/teste/', teste),
+    path('', views.index, name='index'), # Pagina principal
+    path('quemsomos/', views.quemsomos, name='quemsomos'), # Pagina "Quem somos"
+    path('usuarios/', include('usuarios.urls')), # Rotas relacionadas a usuários (login, cadastro, perfil)
 ]
