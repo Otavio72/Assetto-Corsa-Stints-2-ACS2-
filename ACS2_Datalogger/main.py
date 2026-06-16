@@ -6,11 +6,14 @@ import json
 import os
 import shutil
 import requests
+import uuid
 
 caminho_projeto = "logs_capturados"
 ultimo_log = ""
 processo_socket = None
 dados_recebidos = {}
+SESSION_UUID = None
+
 
 def EnviarDjango(dados_telemetria):
 
@@ -88,7 +91,7 @@ def main(page: ft.Page):
           #  flush=True
         #)
 
-    def ler_output_socket():
+    def ler_output_socket(processo_socket):
         global dados_recebidos, ultimo_log
         
         while True:
@@ -108,7 +111,7 @@ def main(page: ft.Page):
 
             #page.update()
 
-           # print("DADO RECEBIDO:", linha)
+            print("DADO RECEBIDO:", linha)
 
             if linha.startswith("{"):
                 dados_recebidos = json.loads(linha)
@@ -134,7 +137,7 @@ def main(page: ft.Page):
 
                     if code == "01":
                         led_pacote.bgcolor = ft.Colors.ORANGE_400
-                        txt_status_socket.value = "Socket: AGUARDANDO DADOS"
+                        txt_status_socket.value = "Socket: INICIADO"
                         txt_status_socket.color = ft.Colors.ORANGE_400
                         
                     elif code == "02":
@@ -143,9 +146,9 @@ def main(page: ft.Page):
                         txt_status_socket.color = ft.Colors.GREEN_400
 
                     elif code == "03":
-                        led_pacote.bgcolor = ft.Colors.RED_400
-                        txt_status_socket.value = "Socket: TIMEOUT"
-                        txt_status_socket.color = ft.Colors.RED_400
+                        led_pacote.bgcolor = ft.Colors.BLUE_400
+                        txt_status_socket.value = "Socket: CONECTADO"
+                        txt_status_socket.color = ft.Colors.BLUE_400
 
                     elif code == "00":
                         led_pacote.bgcolor = ft.Colors.GREY_900
@@ -163,6 +166,8 @@ def main(page: ft.Page):
 
                     if code == "07":
                         dados_telemetria = dados_recebidos["DATA"]
+                        dados_telemetria["session_uuid"] = SESSION_UUID
+                        
                         if "Carro" in dados_telemetria:
                             txt_carro.value = dados_telemetria["Carro"]
 
@@ -201,7 +206,9 @@ def main(page: ft.Page):
             page.update()
 
     def IniciarAC():
-        global processo_socket
+        global processo_socket, SESSION_UUID
+
+        SESSION_UUID = str(uuid.uuid4())
 
         processo_socket = subprocess.Popen(
         [sys.executable, "sockAssettoCorsa.py"],
@@ -212,8 +219,11 @@ def main(page: ft.Page):
     )
         threading.Thread(
             target=ler_output_socket,
+            args=(processo_socket,),
             daemon=True
         ).start()
+
+        #print("PID criado:", processo_socket.pid)
 
     def IniciarF12013():
         
@@ -376,15 +386,24 @@ def main(page: ft.Page):
         else:
 
             if processo_socket:
-                processo_socket.terminate()
+                processo_socket.kill()
+                processo_socket.wait(timeout=2)
+                processo_socket = None
+                #print("PID encerrando:", processo_socket.pid)
 
-            btn_ligar_sock.text = "LIGAR COLETOR"
-            btn_ligar_sock.bgcolor = ft.Colors.GREEN_700
+            #processo_socket.kill()
 
-            txt_status_socket.value = "Socket: DESLIGADO"
-            txt_status_socket.color = ft.Colors.RED_400
+            
 
-            led_pacote.bgcolor = ft.Colors.RED_400
+            #print("poll:", processo_socket.poll())
+
+                btn_ligar_sock.text = "LIGAR COLETOR"
+                btn_ligar_sock.bgcolor = ft.Colors.GREEN_700
+
+                txt_status_socket.value = "Socket: DESLIGADO"
+                txt_status_socket.color = ft.Colors.RED_400
+
+                led_pacote.bgcolor = ft.Colors.RED_400
 
         page.update()
         

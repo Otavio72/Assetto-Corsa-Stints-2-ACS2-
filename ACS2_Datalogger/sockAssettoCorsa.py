@@ -4,6 +4,8 @@ import time
 import sys
 import json
 
+
+
 def processar_handshake(data):
     if len(data) != 408:
         #print(f"⚠️ Pacote inesperado: {len(data)} bytes")
@@ -45,7 +47,7 @@ def processar_handshake(data):
         "Layout": layout
     }
 
-def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
+def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT,Conectado):
 # =========================
 # 2. SUBSCRIBE (UPDATE)
 # =========================
@@ -76,51 +78,65 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
             data, addr = sock.recvfrom(4096)
 
             if data:
-                print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "02",
-                            "MSG": "Recebendo Dados"
-                        }),
-                        flush=True
-                    )
+                if not Conectado:
+                    print(
+                            json.dumps({
+                                "TYPE": "STATUS",
+                                "CODE": "03",
+                                "MSG": "Conectado"
+                            }),
+                            flush=True
+                        )
+                    Conectado = True
                 
-            #size = len(data)
-            #unpacked = struct.unpack('<50s50sii50s50s', data[:208])
-            lapCount = struct.unpack_from('<i', data, base + 44)[0]
-            
-            if lapCount != ultima_volta:
-                #speed_kmh = struct.unpack_from('<f', data, 8)[0]
-                #lapTime  = struct.unpack_from('<i', data, base + 32)[0]
-                lastLap  = struct.unpack_from('<i', data, base + 36)[0]
-                bestLap  = struct.unpack_from('<i', data, base + 40)[0]
-                
-                ultima_volta = lapCount
+                else:
 
-                DadosAssettoCorsa = {
-                    "Jogo":"Assetto Corsa",
-                    "Carro": info_sessao["Carro"],
-                    "Pista": info_sessao["Pista"],
-                    "Layout": info_sessao["Layout"],
-                    "Tempo": round(lastLap / 1000, 3),
-                    "VoltaAtual": ultima_volta,
-                    "BestLap": bestLap
-                }
-
-                #print(
-                 #   json.dumps(DadosAssettoCorsa),
-                  #  flush=True
-                   # )
                 
-                print(
-                    json.dumps({
-                    "TYPE": "TELEMETRIA",
-                    "CODE": "07",
-                    "MSG": "[TELEMETRIA OK]",
-                    "DATA": DadosAssettoCorsa
-                    }),
-                    flush=True
-                    )
+                    #size = len(data)
+                    #unpacked = struct.unpack('<50s50sii50s50s', data[:208])
+                    lapCount = struct.unpack_from('<i', data, base + 44)[0]
+                    
+                    if lapCount != ultima_volta:
+                        #speed_kmh = struct.unpack_from('<f', data, 8)[0]
+                        #lapTime  = struct.unpack_from('<i', data, base + 32)[0]
+                        lastLap  = struct.unpack_from('<i', data, base + 36)[0]
+                        bestLap  = struct.unpack_from('<i', data, base + 40)[0]
+                        
+                        ultima_volta = lapCount
+
+                        DadosAssettoCorsa = {
+                            "Jogo":"Assetto Corsa",
+                            "Carro": info_sessao["Carro"],
+                            "Pista": info_sessao["Pista"],
+                            "Layout": info_sessao["Layout"],
+                            "Tempo": round(lastLap / 1000, 3),
+                            "VoltaAtual": ultima_volta,
+                            "BestLap": bestLap
+                        }
+
+                        #print(
+                        #   json.dumps(DadosAssettoCorsa),
+                        #  flush=True
+                        # )
+                        
+                        print(
+                            json.dumps({
+                            "TYPE": "TELEMETRIA",
+                            "CODE": "07",
+                            "MSG": "[TELEMETRIA OK]",
+                            "DATA": DadosAssettoCorsa
+                            }),
+                            flush=True
+                            )
+                        
+                        print(
+                                json.dumps({
+                                    "TYPE": "STATUS",
+                                    "CODE": "02",
+                                    "MSG": "Recebendo Dados"
+                                }),
+                                flush=True
+                            )
 
         except struct.error as e:
                 #print("Erro ao decodificar handshake:", e)
@@ -140,6 +156,7 @@ def SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT):
 # --- CONFIGURAÇÃO INICIAL ---
 UDP_IP = "127.0.0.1"
 UDP_PORT = 9996
+Conectado = False
 
 #print("🔍 Aguardando Assetto Corsa... (Pode abrir o jogo agora!)")
 print(
@@ -160,7 +177,7 @@ while True:
         sock.ioctl(socket.SIO_UDP_CONNRESET, False)
     
     try:
-        sock.settimeout(1.0) # Espera 1 seg por tentativa
+        #sock.settimeout(1.0) # Espera 1 seg por tentativa
         handshake = struct.pack('iii', 1, 1, 0)
         sock.sendto(handshake, (UDP_IP, UDP_PORT))
         
@@ -169,10 +186,10 @@ while True:
         if len(data) == 408:
             info_sessao = processar_handshake(data)
             if info_sessao:
-                SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT)
-                sock.settimeout(30)  # Se o jogo silenciar por 30 segundos, ativa o alarme!
+                SocketAssettoCorsa(sock, info_sessao, UDP_IP, UDP_PORT, Conectado)
+                #sock.settimeout(30)  # Se o jogo silenciar por 30 segundos, ativa o alarme!
 
-    except socket.timeout:
+    #except socket.timeout:
         # 🚨 A FLAG QUE VOCÊ QUERIA! 
         # Se chegou aqui, significa que o jogo fechou ou parou de mandar dados.
         #print("\n🛑 [ACS 2] O jogo parou de responder por 5 segundos. Stint finalizado!")
@@ -181,20 +198,20 @@ while True:
         #flush=True
         #)
 
-        print(
-            json.dumps({
-            "TYPE": "STATUS",
-            "CODE": "03",
-            "MSG": "🛑 [TIMEOUT] Assetto Corsa parou de enviar pacotes (Jogo pausado, no menu ou fechado)."
-            }),
-            flush=True
-            )
+        #print(
+         #   json.dumps({
+          #  "TYPE": "STATUS",
+           # "CODE": "03",
+            #"MSG": "🛑 [TIMEOUT] Assetto Corsa parou de enviar pacotes (Jogo pausado, no menu ou fechado)."
+            #}),
+            #flush=True
+            #)
         
-        sock.close()  # Fecha o socket atual de forma limpa
-        
-        # Aqui você decide o que o ACS 2 faz:
-        # Se quiser fechar o programa todo:
-        sys.exit() 
+        #sock.close()
+
+        #time.sleep(1)
+
+        #continue 
         
         # Se quiser salvar os dados e voltar a esperar um novo jogo abrir:
         # break # (sai desse loop e vai pra lógica de reiniciar)

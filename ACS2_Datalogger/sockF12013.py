@@ -187,130 +187,133 @@ def PegarCarroEpista():
             data, addr = sock.recvfrom(2048)
 
             if data:
-                print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "02",
-                            "MSG": "Recebendo Dados"
-                        }),
-                        flush=True
-                    )
-
-
-            pacote = struct.unpack(
-                'f' * (len(data) // 4),
-                data
-            )
-
-            #valor_atual = pacote[2]
-            valor_atual = round(pacote[2], 5)
-
-            # =========================================================
-            # 📦 CAPTURAR BOX
-            # =========================================================
-
-            if valor_box_capturado == 0:
-
-                if valor_atual > 0 and valor_atual == v_antigo:
-                    count_val += 1
-                else:
-                    count_val = 0
-
-                v_antigo = valor_atual
-
-                if count_val >= 15:
-
-                    valor_box_capturado = valor_atual
-
-                    #print(
-                     #   f"\n✅ [BOX OK] Valor: {valor_box_capturado:.5f}",
-                      #  flush=True
-                    #)
-
+                if not Conectado:
+                    print(
+                            json.dumps({
+                                "TYPE": "STATUS",
+                                "CODE": "03",
+                                "MSG": "Conectado"
+                            }),
+                            flush=True
+                        )
+                    Conectado = True
+                
                 else:
 
-                    #print(
-                     #   f"\r⏳ Sincronizando: {count_val}/15",
-                      #  end="",
-                       # flush=True
-                    #)
 
-                    continue
-
-            # =========================================================
-            # 🏁 MONITORA PICO DA PISTA
-            # =========================================================
-
-            if valor_atual > pico_atual:
-                pico_atual = valor_atual
-
-            # =========================================================
-            # 🌍 IDENTIFICA PISTA
-            # =========================================================
-
-            if valor_atual < pico_atual and pista_confirmada == "":
-
-                pista = descobrir_pista(pico_atual)
-
-                if pista != "PISTA_DESCONHECIDA":
-
-                    pista_confirmada = pista
-
-                    #print(
-                     #   f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}",
-                      #  flush=True
-                    #)
-
-                    print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "05",
-                            "MSG": f"\n🌍 [PISTA OK] {pista_confirmada}"
-                        }),
-                        flush=True
+                    pacote = struct.unpack(
+                        'f' * (len(data) // 4),
+                        data
                     )
 
-                    # =========================================================
-                    # 🚗 IDENTIFICA CARRO
-                    # =========================================================
-
-                    carro_nome = buscar_carro(
-                        pista_confirmada,
-                        valor_box_capturado
-                    )
-
-                    #print(
-                     #   f"🏎️ [CARRO OK] Identificado: {carro_nome}",
-                      #  flush=True
-                    #)
-
-                    print(
-                        json.dumps({
-                            "TYPE": "STATUS",
-                            "CODE": "06",
-                            "MSG": f"🏎️ [CARRO OK] Identificado: {carro_nome}"
-                        }),
-                        flush=True
-                    )
+                    #valor_atual = pacote[2]
+                    valor_atual = round(pacote[2], 5)
 
                     # =========================================================
-                    # 🚀 INICIA TELEMETRIA
+                    # 📦 CAPTURAR BOX
                     # =========================================================
 
-                    SocketF12013(
-                        sock,
-                        contador_voltas,
-                        carro_nome,
-                        pista_confirmada,
-                        ultima_volta
-                    )
+                    if valor_box_capturado == 0:
+
+                        if valor_atual > 0 and valor_atual == v_antigo:
+                            count_val += 1
+                        else:
+                            count_val = 0
+
+                        v_antigo = valor_atual
+
+                        if count_val >= 15:
+
+                            valor_box_capturado = valor_atual
+
+                            #print(
+                            #   f"\n✅ [BOX OK] Valor: {valor_box_capturado:.5f}",
+                            #  flush=True
+                            #)
+
+                        else:
+
+                            #print(
+                            #   f"\r⏳ Sincronizando: {count_val}/15",
+                            #  end="",
+                            # flush=True
+                            #)
+
+                            continue
+
+                    # =========================================================
+                    # 🏁 MONITORA PICO DA PISTA
+                    # =========================================================
+
+                    if valor_atual > pico_atual:
+                        pico_atual = valor_atual
+
+                    # =========================================================
+                    # 🌍 IDENTIFICA PISTA
+                    # =========================================================
+
+                    if valor_atual < pico_atual and pista_confirmada == "":
+
+                        pista = descobrir_pista(pico_atual)
+
+                        if pista != "PISTA_DESCONHECIDA":
+
+                            pista_confirmada = pista
+
+                            #print(
+                            #   f"\n🌍 [PISTA OK] Identificada: {pista_confirmada}",
+                            #  flush=True
+                            #)
+
+                            print(
+                                json.dumps({
+                                    "TYPE": "STATUS",
+                                    "CODE": "05",
+                                    "MSG": f"\n🌍 [PISTA OK] {pista_confirmada}"
+                                }),
+                                flush=True
+                            )
+
+                            # =========================================================
+                            # 🚗 IDENTIFICA CARRO
+                            # =========================================================
+
+                            carro_nome = buscar_carro(
+                                pista_confirmada,
+                                valor_box_capturado
+                            )
+
+                            #print(
+                            #   f"🏎️ [CARRO OK] Identificado: {carro_nome}",
+                            #  flush=True
+                            #)
+
+                            print(
+                                json.dumps({
+                                    "TYPE": "STATUS",
+                                    "CODE": "06",
+                                    "MSG": f"🏎️ [CARRO OK] Identificado: {carro_nome}"
+                                }),
+                                flush=True
+                            )
+
+                            # =========================================================
+                            # 🚀 INICIA TELEMETRIA
+                            # =========================================================
+
+                            SocketF12013(
+                                sock,
+                                contador_voltas,
+                                carro_nome,
+                                pista_confirmada,
+                                ultima_volta
+                            )
 
     except KeyboardInterrupt:
-
         print("\n🛑 Encerrado.")
 
 def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
-    sock.settimeout(5)
+    #sock.settimeout(5)
     while True:
         try:
             data, _ = sock.recvfrom(4096)
@@ -364,21 +367,30 @@ def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
                     }),
                     flush=True
                     )
-            ultima_volta = tempo_lap
-
-        except socket.timeout:
-            # 🚨 O ALARME TOCOU! Se passaram 5 segundos de silêncio absoluto no rádio
-            #print("\n🛑 [ACS 2] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado).")
-            print(
-                json.dumps({
+                
+                print(
+                    json.dumps({
                     "TYPE": "STATUS",
-                    "CODE": "03",
-                    "MSG": "🛑 [TIMEOUT] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado)."
+                    "CODE": "02",
+                    "MSG": "Recebendo Dados"
                     }),
                     flush=True
                     )
-            sock.close() # Fecha a conexão limpa
-            break # 🎯 Quebra o loop e encerra o stint com sucesso!
+            ultima_volta = tempo_lap
+
+        #except socket.timeout:
+            # 🚨 O ALARME TOCOU! Se passaram 5 segundos de silêncio absoluto no rádio
+            #print("\n🛑 [ACS 2] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado).")
+         #   print(
+          #      json.dumps({
+           #         "TYPE": "STATUS",
+            #        "CODE": "03",
+             #       "MSG": "🛑 [TIMEOUT] F1 2013 parou de enviar pacotes (Jogo pausado, no menu ou fechado)."
+              #      }),
+               #     flush=True
+                #    )
+            #sock.close() # Fecha a conexão limpa
+            #break # 🎯 Quebra o loop e encerra o stint com sucesso!
             
         except Exception as e:
             #print(f"Erro inesperado: {e}")
