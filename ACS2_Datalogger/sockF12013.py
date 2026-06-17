@@ -43,8 +43,9 @@ ultima_volta = 0
 ultima_volta_fechada = 0
 contador_voltas = 0
 ultimo_timer_sessao = -1
-timer_pc = time.time()  # Relógio do PC guardando o início
+#timer_pc = time.time()  # Relógio do PC guardando o início
 contador_pacotes_iguais = 0
+Conectado = False
 
 
 #def buscar_carro(pista, valor_box):
@@ -159,7 +160,7 @@ def buscar_carro(pista, valor_box):
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("0.0.0.0", 20777))
     
-def PegarCarroEpista():
+def PegarCarroEpista(Conectado):
     global valor_box_capturado, pico_atual, pista_confirmada, ultimo_timer_sessao,contador_pacotes_iguais
     
     # 1. As variáveis de contagem PRECISAM estar fora do While
@@ -424,4 +425,4 @@ def SocketF12013(sock,contador_voltas,carro_nome,pista_confirmada,ultima_volta):
         #print(f" | GAS: [{bar_gas:<10}] | FRE: [{bar_brk:<10}]", end="\r")
 
 if __name__ == "__main__":
-    PegarCarroEpista()
+    PegarCarroEpista(Conectado)

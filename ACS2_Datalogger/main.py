@@ -178,9 +178,11 @@ def main(page: ft.Page):
                             txt_ultima_volta.value = f"{dados_telemetria['Tempo']:.3f}"
 
                         EnviarDjango(dados_telemetria)
+                        print(dados_telemetria)
                     
                     elif code == "08":
                         dados_telemetria = dados_recebidos["DATA"]
+                        dados_telemetria["session_uuid"] = SESSION_UUID
                         piloto1 = dados_telemetria["Piloto1"]
                         piloto2 = dados_telemetria["Piloto2"]
 
@@ -200,6 +202,7 @@ def main(page: ft.Page):
                             txt_ultima_volta.value = piloto2["Tempo"]
                             
                         EnviarDjango(dados_telemetria)
+                        print(dados_telemetria)
 
                     #page.update()
             
@@ -227,7 +230,9 @@ def main(page: ft.Page):
 
     def IniciarF12013():
         
-        global processo_socket
+        global processo_socket, SESSION_UUID
+
+        SESSION_UUID = str(uuid.uuid4())
 
         processo_socket = subprocess.Popen(
         [sys.executable, "SockF12013.py"],
@@ -238,12 +243,15 @@ def main(page: ft.Page):
     )
         threading.Thread(
             target=ler_output_socket,
+            args=(processo_socket,),
             daemon=True
         ).start()
 
     def IniciarMM():
 
-        global processo_socket
+        global processo_socket, SESSION_UUID
+
+        SESSION_UUID = str(uuid.uuid4())
 
         processo_socket = subprocess.Popen(
         [sys.executable, "sockMotorsportManager.py"],
@@ -254,6 +262,7 @@ def main(page: ft.Page):
     )
         threading.Thread(
             target=ler_output_socket,
+            args=(processo_socket,),
             daemon=True
         ).start()
 
