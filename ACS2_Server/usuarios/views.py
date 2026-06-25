@@ -1,9 +1,17 @@
 from django.shortcuts import render, redirect
-from .forms import CustomCreationForm
+from django.http import JsonResponse
+
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+
 from django.contrib import messages
 
-from django.contrib.auth.decorators import login_required
+from .forms import CustomCreationForm
+from .models import UserToken
+
+import secrets
+import json
 
 #from impressa_app.models import  Pedido
 
@@ -33,7 +41,12 @@ def register(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password1'])
+            token = secrets.token_hex(32)
             user.save()
+            UserToken.objects.create(
+            user=user,
+            token=token
+            )
             return redirect('login')
     else:
         form = CustomCreationForm()
@@ -65,3 +78,31 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+@csrf_exempt
+def login_local(request):
+
+    if request.method == "POST":
+
+        dados = json.loads(request.body)
+
+        username = dados.get("username")
+        password = dados.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+
+            token = UserToken.objects.get(user=user)
+
+            return JsonResponse({
+                "status": "ok",
+                "token": token.token
+            })
+
+        return JsonResponse({
+            "status": "erro",
+            "msg": "credenciais inválidas"
+        }, status=401)
+
+    return JsonResponse({"erro": "use POST"}, status=405)

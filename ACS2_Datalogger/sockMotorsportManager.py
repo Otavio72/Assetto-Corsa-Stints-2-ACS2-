@@ -177,7 +177,8 @@ while True:
                             tempo = -1
 
                         dataMMpiloto1 = {
-                            "NomePiloto": dados_gerais['Driver name1'],
+                            "Jogo":"Motorsport Manager",
+                            "NomePiloto1": dados_gerais['Driver name1'],
                             "Carro": dados_gerais['Driver Team1'],
                             "Volta": lap1,
                             "Tempo": tempo,
@@ -193,16 +194,25 @@ while True:
                         #      flush=True
                         #     )
                         
-                        #print(
-                        #   json.dumps({
-                        #      "TYPE": "TELEMETRIA",
-                        #     "CODE": "07",
-                            #    "MSG": "Recebendo Dados PILOTO 1",
-                            #   "DATA": dataMMpiloto1
-                            #}),
-                            #flush=True
-                        #)
-
+                        print(
+                           json.dumps({
+                                "TYPE": "TELEMETRIA",
+                                "CODE": "08",
+                                "MSG": "Recebendo Dados PILOTO 1",
+                                "DATA": dataMMpiloto1
+                            }),
+                            flush=True
+                        )
+                        
+                        print(
+                            json.dumps({
+                                "TYPE": "STATUS",
+                                "CODE": "02",
+                                "MSG": "Recebendo Dados"
+                            }),
+                            flush=True
+                    )
+                        
                         #print(
                         #   json.dumps({
                         #      "TYPE": "STATUS",
@@ -223,31 +233,24 @@ while True:
                             tempo = -1
 
                         dataMMpiloto2 = {
-                            "NomePiloto": dados_gerais['Driver name2'],
-                            "NomeTime": dados_gerais['Driver Team2'],
+                            "Jogo":"Motorsport Manager",
+                            "NomePiloto2": dados_gerais['Driver name2'],
+                            "Carro": dados_gerais['Driver Team2'],
                             "Volta": lap2,
                             "Tempo": tempo,
                             "Pista": pista
                         }
 
                         ultimas_voltas[piloto2] = lap2
-                        
-                        #print(
-                        #       json.dumps(dataMMpiloto2),
-                        #      flush=True
-                        #     )
-                        
-                        print(
-                            json.dumps({
-                                "TYPE": "TELEMETRIA",
-                                "CODE": "08",
-                                "MSG": "Recebendo Dados",
-                                "DATA":{
-                                    "Jogo":"Motorsport Manager",
 
-                                    "Piloto1": dataMMpiloto1,
-                                    "Piloto2": dataMMpiloto2
-                                }
+                    
+
+                        print(
+                           json.dumps({
+                                "TYPE": "TELEMETRIA",
+                                "CODE": "09",
+                                "MSG": "Recebendo Dados PILOTO 2",
+                                "DATA": dataMMpiloto2
                             }),
                             flush=True
                         )
@@ -259,15 +262,37 @@ while True:
                                 "MSG": "Recebendo Dados"
                             }),
                             flush=True
-                        )
+                    )
+                        
                         #print(
-                        #    json.dumps({
-                        #       "TYPE": "STATUS",
-                        #      "CODE": "07",
-                        #     "MSG": "Recebendo Dados PILOTO 2"
+                        #       json.dumps(dataMMpiloto2),
+                        #      flush=True
+                        #     )
+                        
+                        #print(
+                         #   json.dumps({
+                          #      "TYPE": "TELEMETRIA",
+                           #     "CODE": "08",
+                            #    "MSG": "Recebendo Dados",
+                             #   "DATA":{
+                              #      "Jogo":"Motorsport Manager",
+
+                               #     "Piloto1": dataMMpiloto1,
+                                #    "Piloto2": dataMMpiloto2
+                                #}
                             #}),
                             #flush=True
                         #)
+
+                        #print(
+                         #   json.dumps({
+                          #      "TYPE": "STATUS",
+                           #     "CODE": "02",
+                            #    "MSG": "Recebendo Dados"
+                            ##}),
+                            #flush=True
+                    #)
+
                     
             except PermissionError:
                 pass

@@ -13,7 +13,14 @@ ultimo_log = ""
 processo_socket = None
 dados_recebidos = {}
 SESSION_UUID = None
+TOKEN = None
+CONFIG_PATH = "config.json"
 
+
+
+def salvar_token(token):
+    with open(CONFIG_PATH, "w") as f:
+        json.dump({"token": token}, f)
 
 def EnviarDjango(dados_telemetria):
 
@@ -21,6 +28,9 @@ def EnviarDjango(dados_telemetria):
 
     if not dados_telemetria:
         return
+    
+    if TOKEN:
+        dados_telemetria["token"] = TOKEN
 
     try:
 
@@ -43,6 +53,16 @@ def main(page: ft.Page):
 # 🧹 UTILITARIOS
 # =========================================================================
 
+    def carregar_token():
+        global TOKEN
+
+        if os.path.exists(CONFIG_PATH):
+            with open(CONFIG_PATH, "r") as f:
+                data = json.load(f)
+                TOKEN = data.get("token")
+                return True
+
+        return False
     def limpar_logs(e):
         for item in os.listdir(caminho_projeto):
 
@@ -183,26 +203,34 @@ def main(page: ft.Page):
                     elif code == "08":
                         dados_telemetria = dados_recebidos["DATA"]
                         dados_telemetria["session_uuid"] = SESSION_UUID
-                        piloto1 = dados_telemetria["Piloto1"]
-                        piloto2 = dados_telemetria["Piloto2"]
 
-                        if "NomeTime" in piloto1:
-                            txt_carro.value = piloto1["NomeTime"]
-                        elif "NomeTime" in piloto2:
-                            txt_carro.value = piloto2["NomeTime"]
-                        
-                        if "Pista" in piloto1:
-                            txt_pista.value = piloto1["Pista"]
-                        elif "Pista" in piloto2:
-                            txt_pista.value = piloto2["Pista"]
+                        if "Carro" in dados_telemetria:
+                            txt_carro.value = dados_telemetria["Carro"]
 
-                        if "Tempo" in piloto1:
-                            txt_ultima_volta.value = piloto1["Tempo"]
-                        elif "Tempo" in piloto2:
-                            txt_ultima_volta.value = piloto2["Tempo"]
+                        if "Pista" in dados_telemetria:
+                            txt_pista.value = dados_telemetria["Pista"]
+
+                        if "Tempo" in dados_telemetria:
+                            txt_ultima_volta.value = dados_telemetria["Tempo"]
                             
                         EnviarDjango(dados_telemetria)
-                        print(dados_telemetria)
+                        #print(dados_telemetria)
+                    
+                    elif code == "09":
+                        dados_telemetria = dados_recebidos["DATA"]
+                        dados_telemetria["session_uuid"] = SESSION_UUID
+
+                        if "Carro" in dados_telemetria:
+                            txt_carro.value = dados_telemetria["Carro"]
+
+                        if "Pista" in dados_telemetria:
+                            txt_pista.value = dados_telemetria["Pista"]
+
+                        if "Tempo" in dados_telemetria:
+                            txt_ultima_volta.value = dados_telemetria["Tempo"]
+                            
+                        EnviarDjango(dados_telemetria)
+                        #print(dados_telemetria)
 
                     #page.update()
             
@@ -437,11 +465,67 @@ def main(page: ft.Page):
 
         page.views.clear()
 
+        def fazer_login(e):
+
+            global TOKEN
+            try:
+                r = requests.post(
+                    "http://127.0.0.1:8000/usuarios/login_local/",
+                    json={
+                        "username": txt_user.value,
+                        "password": txt_pass.value
+                    }
+                )
+
+                data = r.json()
+
+                if data.get("status") == "ok":
+
+                    TOKEN = data["token"]
+                    salvar_token(TOKEN)
+
+                    page.go("/")
+
+                else:
+                    txt_erro.value = "Login inválido"
+                    page.update()
+
+            except Exception as ex:
+                txt_erro.value = "Erro ao conectar com servidor"
+                page.update()
+
         # ==========================================================
         # 🏁 MENU
         # ==========================================================
 
-        if page.route == "/":
+        if page.route == "/login":
+
+            txt_user = ft.TextField(label="Usuário")
+            txt_pass = ft.TextField(label="Senha", password=True)
+            txt_erro = ft.Text(color="red")
+
+            btn_login = ft.ElevatedButton(
+                "Entrar",
+                on_click=fazer_login
+            )
+
+            page.views.append(
+                ft.View(
+                    "/login",
+                    [
+                        ft.Text("ACS2 Login", size=30, weight=ft.FontWeight.BOLD),
+
+                        txt_user,
+                        txt_pass,
+
+                        btn_login,
+
+                        txt_erro
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                )
+            )
+        elif page.route == "/":
 
             btn_sel_f1 = ft.TextButton(
                 text="Selecionar",
@@ -685,7 +769,12 @@ def main(page: ft.Page):
     page.on_route_change = rota_mudou
     page.on_view_pop = view_pop
 
-    page.go("/")
+    #page.go("/")
+
+    if carregar_token():
+        page.go("/")
+    else:
+        page.go("/login")
 
 
 # 🚀 EXECUTA

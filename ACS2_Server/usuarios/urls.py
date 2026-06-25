@@ -7,4 +7,5 @@ urlpatterns = [
     path('login/', views.login_view, name='login'), # Página de login
     path('perfil/', views.perfil, name='perfil'), # Página de perfil do usuário autenticado
     path('logout/', views.logout_view, name='logout'), # Encerrar sessão e redirecionar para login
+     path('login_local/', views.login_local, name='login_local'), 
 ]
