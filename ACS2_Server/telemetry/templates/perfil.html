@@ -15,7 +15,7 @@
     <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
     
     <!--CSS personalizado estático-->
-    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="/static/css/Usuariosstyle.css">
 
 </head>
 <body>
@@ -26,7 +26,7 @@
     <header class=" cabecalho d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
         <div class="col-md-3 mb-2 mb-md-0">
         
-              <a href="{% url 'index' %}">
+              <a href="">
                 <img class="logo_img mx-auto d-block d-md-inline" src="{% static 'img/impressa_logo.png' %}" alt="">
               </a>
             
@@ -34,18 +34,18 @@
         
         <!--Menu de navegação principal-->
         <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-          <li><a href="{% url 'index' %}" class="nav-link px-2">Home</a></li>
-          <li><a href="{% url 'quemsomos' %}" class="nav-link px-2">Quem somos</a></li>
+          <li><a href="" class="nav-link px-2">Home</a></li>
+          <li><a href="" class="nav-link px-2">Quem somos</a></li>
         </ul>
         
         {# Botões de login/logout/perfil, dependendo do estado de autenticação #}
         <div class="col-md-3 text-end">
           {% if user.is_authenticated %}
-            <a href="{% url 'perfil' %}" class="cabecalho-btn btn btn-outline-success me-2">Perfil</a>
-            <a href="{% url 'logout' %}" class="cabecalho-btn btn btn-outline-success me-2">Logout</a>
+            <a href="" class="cabecalho-btn btn btn-outline-success me-2">Perfil</a>
+            <a href="/usuarios/logout/" class="cabecalho-btn btn btn-outline-success me-2">Logout</a>
           {% else %}
-            <a href="{% url 'login' %}" class="cabecalho-btn btn btn-outline-success me-2">Login</a>
-            <a href="{% url 'register' %}" class="cabecalho-btn btn btn-outline-success me-2">Registrar</a>
+            <a href="" class="cabecalho-btn btn btn-outline-success me-2">Login</a>
+            <a href="" class="cabecalho-btn btn btn-outline-success me-2">Registrar</a>
           {% endif %}
         </div>
       </header>
@@ -82,48 +82,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-
-      {# Historico de pedidos já realizados #}
-      <div id="pedidos-container">
-        <div class="container col-xxl-8 px-4 py-5 ">
-          <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-            
-              {% if pedidos %}
-                <div class="pedidos-box">
-                  <h6 class="posicionado">Pedidos Já feitos</h6>
-                  <div class="swiper mySwiper">
-                    <div class="swiper-wrapper">
-                      {% for pedido in pedidos %}
-                        <div class="swiper-slide">
-                          <div class="pedido_item_container" id="pedido-{{ pedido.id }}">
-                            <h5 class="label-info">Pedido: #<span class="pedido-item">{{ pedido.numero_pedido_usuario }}</span></h5>
-                            <h6 class="label-info">Data: <span>{{ pedido.data_criado }}</span></h6>
-                            <h6 class="label-info">Estado: <span>{{ pedido.estado }}</span></h6>
-                            <h6 class="label-info">Endereço: <span>{{ pedido.endereco }}, <span>{{ pedido.bairro }}, </span><span>{{ pedido.cidade }}</span></span></h6>
-                            {% if pedido.endereco2 %}
-                              <h6 class="label-info">Complemento: <span>{{ pedido.endereco2 }}</span></h6>
-                            {% endif %}
-                            <h6 class="label-info">Status: <span>{{ pedido.status }}</span></h6>
-                            <h6 class="label-info">Pagamento: <span>{{ pedido.pagamento }}</span></h6>
-                            <h6 class="label-info">Total: <span>R${{ pedido.total }}</span></h6>
-                          </div>
-                        </div>
-                      {% endfor %}
-                      </div>
-
-                      <div class="swiper-button-next"></div>
-                      <div class="swiper-button-prev"></div>
-              {% else %}
-                      <div class="historico-vazio-container">
-                        <h1 class="titulo">Nenhum pedido realizado</h1>
-                      </div>
-              {% endif %}                  
-                </div>
-              </div>
-            </div>
-          </div>
       </div>
       
 

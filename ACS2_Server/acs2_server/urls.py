@@ -16,14 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from telemetry.views import teste
+from telemetry.views import *
 from django.urls import path, include
 from telemetry import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/teste/', teste),
-    path('', views.index, name='index'), # Pagina principal
-    path('quemsomos/', views.quemsomos, name='quemsomos'), # Pagina "Quem somos"
+    path('', views.index, name='index'), # Pagina INICIAL
+    path('index/', views.index, name='index'), # Pagina principal
+    
+    path('AssettoCorsa/', views.AssettoCorsa, name='AssettoCorsa'),
+    path('f12013/', views.f12013, name='f12013'),
+    path('motorsportmanager/', views.motorsportmanager, name='motorsportmanager'),
+
+    path("analise/<str:game>/<int:stint_a>/<int:stint_b>/", views.analise, name="analise"),
+    path('about/', views.about, name='about'), # Pagina "Quem somos"
     path('usuarios/', include('usuarios.urls')), # Rotas relacionadas a usuários (login, cadastro, perfil)
 ]

@@ -27,7 +27,7 @@ import json
    #     'pedidos': pedidos,
     #})
 
-@login_required
+
 def perfil(request):
     return render(request, 'perfil.html', {
     })

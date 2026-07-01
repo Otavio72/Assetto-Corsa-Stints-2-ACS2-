@@ -7,7 +7,10 @@ from usuarios.models import UserToken
 from .models import Stint, TelemetryLap
 from .schema import build_acs2_schema
 
+from .utils.gemini import generate_gemini_report
 
+
+@login_required
 @csrf_exempt
 def teste(request):
     if request.method == "POST":
@@ -77,9 +80,87 @@ def teste(request):
 def index(request):
     return render(request, 'index.html')
 
+@login_required
+def AssettoCorsa(request):
 
-# Renderiza a Pagina Quem Somos
-def quemsomos(request):
-    return render(request, 'quemsomos.html')
+    game = "Assetto Corsa"
+
+    stints = Stint.objects.filter(game=game).order_by("-id")
+    
+
+    return render(request, "assettocorsa.html", {
+        "stints": stints,
+        "game": game
+    })
+
+
+@login_required
+def f12013(request):
+
+    game = "F1 2013"
+    
+    stints = Stint.objects.filter(game=game).order_by("-id")
+
+    return render(request, "F12013.html", {
+        "stints": stints,
+        "game": game
+    })
+
+
+@login_required
+def motorsportmanager(request):
+    game = "Motorsport Manager"
+    
+    stints = Stint.objects.filter(game=game).order_by("-id")
+
+    return render(request, "MotorsportManager.html", {
+        "stints": stints,
+        "game": game
+    })
+
+@login_required
+def analise(request, game, stint_a, stint_b):
+
+    stint_a = Stint.objects.get(id=stint_a, game=game)
+    stint_b = Stint.objects.get(id=stint_b, game=game)
+
+    laps_a = TelemetryLap.objects.filter(stint=stint_a).order_by("lap_number")
+    laps_b = TelemetryLap.objects.filter(stint=stint_b).order_by("lap_number")
+
+    laps_a_data = [
+        {"lap": l.lap_number, "time": l.lap_time}
+        for l in laps_a
+    ]
+
+    laps_b_data = [
+        {"lap": l.lap_number, "time": l.lap_time}
+        for l in laps_b
+    ]
+
+    context = {
+        "game": game,
+        "track": stint_a.track,
+        "car_a": stint_a.car,
+        "car_b": stint_b.car,
+        "laps_a": laps_a_data,
+        "laps_b": laps_b_data,
+    }
+
+    report = generate_gemini_report(context)
+    
+
+    return render(request, "analise.html", {
+        "game": game,
+        "stint_a": stint_a,
+        "stint_b": stint_b,
+        "laps_a": json.dumps(laps_a_data),
+        "laps_b": json.dumps(laps_b_data),
+        "report": report,
+        "car_a": stint_a.car,
+        "car_b": stint_b.car,
+    })
+
+def about(request):
+    return render(request, 'about.html')
 
 
