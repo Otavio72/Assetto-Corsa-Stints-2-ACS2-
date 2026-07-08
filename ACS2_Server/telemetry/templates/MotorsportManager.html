@@ -43,26 +43,46 @@
 
   <div id="page-data" data-game="{{ game }}"></div>
   
-	  <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container">
-	      <a class="navbar-brand" href="/index">Car<span>Book</span></a>
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="oi oi-menu"></span> Menu
-	      </button>
+<!-- NAVBAR GLOBAL -->
+<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light scrolled awake">
+  <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/index">
+    <img src="/static/img/logo.png"
+         alt="ACS2"
+         class="logo-navbar">
+</a>
 
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav ml-auto">
-	          <li class="nav-item active"><a href="/index" class="nav-link">Home</a></li>
-	          <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
-	          <li class="nav-item"><a href="/car" class="nav-link">Cars</a></li>
-	        </ul>
-	      </div>
-	    </div>
-	  </nav>
+    <div class="collapse navbar-collapse" id="ftco-nav">
+      <ul class="navbar-nav ml-auto">
+
+        <li class="nav-item"><a href="/index" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
+
+        {% if user.is_authenticated %}
+
+          <li class="nav-item"><a href="/usuarios/perfil/" class="nav-link">Perfil</a></li>
+          <li class="nav-item"><a href="/usuarios/logout/" class="nav-link">Logout</a></li>
+
+        {% else %}
+
+          <li class="nav-item"><a href="/usuarios/login" class="nav-link">Login</a></li>
+          <li class="nav-item"><a href="/usuarios/register" class="nav-link">Registro</a></li>
+
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>
     <!-- END nav -->
     
-    <section class="hero-wrap hero-wrap-2 js-fullheight" style="background-image: url('/static/img/bg_3.jpg');" data-stellar-background-ratio="0.5">
-      <div class="overlay"></div>
+<section class="hero-wrap hero-wrap-2 js-fullheight video-hero">
+
+    <video class="hero-video" autoplay muted loop playsinline>
+        <source src="/static/video/bgvideowalpaper_3.mp4" type="video/mp4">
+    </video>
+
+    <div class="overlay"></div>
       <div class="container">
         <div class="row no-gutters slider-text js-fullheight align-items-end justify-content-start">
           <div class="col-md-9 ftco-animate pb-5">
@@ -78,46 +98,46 @@
     <div class="container">
         <div class="row">
 
-            {% for stint in stints %}
+{% for stint in stints %}
 
-            <div class="col-md-4">
-                <div class="car-wrap rounded ftco-animate stint-card"
-     				data-id="{{ stint.id }}">
+    <div class="col-md-4">
+        <div class="car-wrap rounded ftco-animate stint-card"
+             data-id="{{ stint.id }}">
 
-                    <div class="img rounded d-flex align-items-end"
-                         style="background-image: url(/static/img/car-1.jpg);">
-                    </div>
-
-                    <div class="text">
-
-                        <!-- TRACK -->
-                        <h2 class="mb-0">
-                            <a href="/carcards/{{ stint.id }}/">
-                                {{ stint.track }}
-                            </a>
-                        </h2>
-
-                        <div class="d-flex mb-3">
-
-                            <!-- CAR -->
-                            <span>
-                                <p>{{ stint.car }}</p>
-                            </span>
-                        </div>
-
-                        <p class="d-flex mb-0 d-block">
-
-							<a href="#" class="btn btn-primary py-2 mr-1 select-btn">
-								Select
-							</a>
-
-                        </p>
-
-                    </div>
-                </div>
+            <div class="img rounded d-flex align-items-end"
+                 style="background-image: url(/static/img/car-1.jpg);">
             </div>
 
-            {% endfor %}
+            <div class="text">
+
+                <h2 class="mb-0">
+                    <a href="/carcards/{{ stint.id }}/">
+                        {{ stint.track }}
+                    </a>
+                </h2>
+
+                <div class="d-flex mb-3">
+                    <span><p>{{ stint.car }}</p></span>
+                </div>
+
+                <p class="d-flex mb-0 d-block">
+                    <a href="#" class="btn btn-primary py-2 mr-1 select-btn">
+                        Select
+                    </a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+
+{% empty %}
+
+    <div class="col-12 text-center py-5">
+        <h3>🏁 Nenhum stint encontrado ainda</h3>
+        <p>Quando você fizer sua primeira corrida, ela vai aparecer aqui.</p>
+    </div>
+
+{% endfor %}
 
         </div>
     </div>
@@ -128,7 +148,12 @@
         <div class="row mb-5">
           <div class="col-md">
             <div class="ftco-footer-widget mb-4">
-              <h2 class="ftco-heading-2"><a href="#" class="logo">Car<span>book</span></a></h2>
+                      <a class="navbar-brand d-flex align-items-center" href="/index">
+    <img src="/static/img/logo.png"
+         alt="ACS2"
+         class="logo-navbar">
+</a>
+<br>
               <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
               <ul class="ftco-footer-social list-unstyled float-md-left float-lft mt-5">
                 <li class="ftco-animate"><a href="#"><span class="icon-twitter"></span></a></li>
@@ -178,7 +203,7 @@
           <div class="col-md-12 text-center">
 
             <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="icon-heart color-danger" aria-hidden="true"></i> by <a href="https:/colorlib.com" target="_blank">Colorlib</a>
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="icon-heart color-danger" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
   <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
           </div>
         </div>

@@ -85,8 +85,12 @@ def AssettoCorsa(request):
 
     game = "Assetto Corsa"
 
-    stints = Stint.objects.filter(game=game).order_by("-id")
+    #stints = Stint.objects.filter(game=game).order_by("-id")
     
+    stints = Stint.objects.filter(
+        game=game,
+        user=request.user
+    ).order_by("-id")
 
     return render(request, "assettocorsa.html", {
         "stints": stints,
@@ -99,7 +103,10 @@ def f12013(request):
 
     game = "F1 2013"
     
-    stints = Stint.objects.filter(game=game).order_by("-id")
+    stints = Stint.objects.filter(
+        game=game,
+        user=request.user
+    ).order_by("-id")
 
     return render(request, "F12013.html", {
         "stints": stints,
@@ -111,7 +118,10 @@ def f12013(request):
 def motorsportmanager(request):
     game = "Motorsport Manager"
     
-    stints = Stint.objects.filter(game=game).order_by("-id")
+    stints = Stint.objects.filter(
+        game=game,
+        user=request.user
+    ).order_by("-id")
 
     return render(request, "MotorsportManager.html", {
         "stints": stints,

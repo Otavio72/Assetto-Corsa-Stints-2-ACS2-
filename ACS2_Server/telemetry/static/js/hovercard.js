@@ -1,16 +1,22 @@
+const preloadImages = [];
+
 document.addEventListener("DOMContentLoaded", () => {
 
-    document.querySelectorAll(".game-video").forEach(video => {
+    document.querySelectorAll(".game-gif").forEach(img => {
 
-        const card = video.closest(".car-wrap");
+        const gifUrl = img.dataset.gif;
 
-        card.addEventListener("mouseenter", () => {
-            video.play();
+        const preload = new Image();
+        preload.src = gifUrl;
+
+        preloadImages.push(preload);
+
+        img.addEventListener("mouseenter", () => {
+            img.src = gifUrl;
         });
 
-        card.addEventListener("mouseleave", () => {
-            video.pause();
-            video.currentTime = 0;
+        img.addEventListener("mouseleave", () => {
+            img.src = img.dataset.still;
         });
 
     });

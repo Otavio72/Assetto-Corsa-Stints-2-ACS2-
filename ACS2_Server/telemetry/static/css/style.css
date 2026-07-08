@@ -10026,6 +10026,423 @@ textarea.form-control {
     display: none !important;
 }
 
+/* ===== Área de Login ===== */
 
+.login-wallpaperLogin{
 
+    position:fixed;
 
+    inset:0;
+    background-color:var(--cyan);
+
+    background:url("../img/bg_1.png") center center/cover no-repeat;
+
+    z-index:-2;
+
+}
+
+.containerUsuarios{
+    max-width: 200px;
+    margin: 0 auto;
+    padding: 0px 20px;
+}
+
+.modal-dialogLogin{
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.modal-contentLogin{
+    max-width: 520px;
+    margin: 80px auto;
+    padding: 30px;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+
+    color: #fff;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-contentLogin:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 25px 60px rgba(0,0,0,.16);
+}
+
+/* ---------- Cabeçalho ---------- */
+
+.titulo-container{
+    text-align: center;
+    padding: 20px 20px 5px;
+}
+
+.tituloUsuarios{
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.subtitulo{
+    color: #fff;
+    font-size: .95rem;
+    margin-bottom: 0;
+}
+
+/* ---------- Formulário ---------- */
+
+.modal-bodyLogin{
+    padding: 35px;
+}
+
+.form-label{
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-control{
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    transition: .25s;
+    box-shadow: none;
+}
+
+.form-control:focus{
+    border-color: #01d28e;
+    box-shadow: 0 0 0 .2rem rgba(1,210,142,.15);
+}
+
+.form-control::placeholder{
+    color:#aaa;
+}
+
+/* ---------- Botão ---------- */
+
+.btn-outline-success{
+    margin-top:15px;
+    border-radius:10px;
+    padding:12px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-outline-success:hover{
+    transform:translateY(-2px);
+}
+
+/* ---------- Mensagens ---------- */
+
+.errorlist{
+    margin-top:20px;
+    padding:12px 18px;
+    border-radius:10px;
+    background:#ffe8e8;
+    color:#d63031;
+    font-weight:500;
+    text-align:center;
+}
+
+/* ---------- Responsivo ---------- */
+
+@media (max-width:768px){
+
+    .containerUsuarios{
+        padding:50px 15px;
+    }
+
+    .tituloUsuarios{
+        font-size:1.6rem;
+    }
+
+    .modal-body{
+        padding:25px;
+    }
+
+}
+
+/* ===========================
+        Página Registro
+=========================== */
+
+.containerUsuarios{
+    max-width:1100px;
+    padding:70px 20px;
+}
+
+.register-card{
+    max-width: 1000px;
+    margin: 80px auto;
+    padding: 30px;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+
+    color: black;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.register-card:hover{
+    box-shadow:0 25px 60px rgba(0,0,0,.16);
+}
+
+/* títulos */
+
+.titulo-container{
+    text-align:center;
+
+}
+
+.tituloUsuarios{
+    font-size:2.3rem;
+    font-weight:700;
+    color:#222;
+}
+
+.subtitulo{
+    color:#777;
+    font-size:1rem;
+    margin-top:5px;
+}
+
+/* formulário */
+
+.form-label{
+    font-weight:600;
+    color:#fff;
+}
+
+.form-control,
+input[type=text],
+input[type=email],
+input[type=password]{
+
+    width:100%;
+    height:48px;
+
+    border-radius:10px;
+    border:1px solid #ddd;
+
+    padding:12px 15px;
+
+    transition:.25s;
+}
+
+.form-control:focus,
+input:focus{
+
+    border-color:#01d28e;
+    box-shadow:0 0 0 .2rem rgba(1,210,142,.18);
+    outline:none;
+
+}
+
+/* botão */
+
+.btn-outline-success{
+
+    margin-top:20px;
+    padding:12px;
+
+    border-radius:10px;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+
+.btn-outline-success:hover{
+
+    transform:translateY(-2px);
+
+}
+
+/* erros */
+
+.errorlist{
+
+    list-style:none;
+
+    padding:0;
+
+    margin-top:6px;
+
+    color:#d63031;
+
+    font-size:.9rem;
+
+}
+
+/* card regras */
+
+.container_regras{
+
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+
+}
+
+.container_regras .modal-content{
+
+    border:none;
+    border-radius:18px;
+
+    background:#fafafa;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+}
+
+.container_regras .modal-body{
+
+    padding:35px;
+
+}
+
+.container_regras p{
+
+    margin-bottom:12px;
+
+}
+
+.container_regras ul{
+
+    padding-left:0;
+
+}
+
+/* responsivo */
+
+@media(max-width:991px){
+
+    .register-card{
+        margin-top: 50px;
+        padding:25px;
+
+    }
+
+    .container_regras{
+
+        margin-top:35px;
+
+    }
+
+}
+
+.login-wallpaperRegistro{
+
+    position:fixed;
+
+    inset:0;
+
+    background:url("../img/bg_1.png") center center/cover no-repeat;
+
+    z-index:-2;
+
+}
+
+.profile-card{
+    max-width: 520px;
+    margin: 80px auto;
+    padding: 30px;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+
+    color: #fff;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+#titulo_perfil{
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.label-box{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 12px 10px;
+    margin-bottom: 10px;
+
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.label-info{
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.label-box span:last-child{
+    font-weight: 500;
+}
+
+.logo-navbar {
+    max-width: 80px;
+    max-height: 80px;
+    transition: transform .25s ease;
+}
+
+.logo-navbar:hover {
+    transform: scale(1.05);
+}
+
+.game-gif{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.video-hero{
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-video{
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    z-index: 0;
+}
+
+.video-hero .overlay{
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1;
+}
+
+.video-hero .container{
+    position: relative;
+    z-index: 2;
+}
+
+.videomini{
+  max-width: 350px;
+  max-height: 350px;
+}
