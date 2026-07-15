@@ -6,11 +6,11 @@ from django.contrib.auth.decorators import login_required
 from usuarios.models import UserToken
 from .models import Stint, TelemetryLap
 from .schema import build_acs2_schema
-
+from .assets import get_track_image, get_car_image
 from .utils.gemini import generate_gemini_report
 
 
-@login_required
+
 @csrf_exempt
 def teste(request):
     if request.method == "POST":
@@ -92,6 +92,10 @@ def AssettoCorsa(request):
         user=request.user
     ).order_by("-id")
 
+    for stint in stints:
+        stint.track_image = get_track_image(stint.track)
+        stint.car_image = get_car_image(stint.car)
+
     return render(request, "assettocorsa.html", {
         "stints": stints,
         "game": game
@@ -108,6 +112,10 @@ def f12013(request):
         user=request.user
     ).order_by("-id")
 
+    for stint in stints:
+        stint.track_image = get_track_image(stint.track)
+        stint.car_image = get_car_image(stint.car)
+
     return render(request, "F12013.html", {
         "stints": stints,
         "game": game
@@ -122,6 +130,10 @@ def motorsportmanager(request):
         game=game,
         user=request.user
     ).order_by("-id")
+
+    for stint in stints:
+        stint.track_image = get_track_image(stint.track)
+        stint.car_image = get_car_image(stint.car)
 
     return render(request, "MotorsportManager.html", {
         "stints": stints,

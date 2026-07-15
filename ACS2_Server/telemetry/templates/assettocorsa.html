@@ -118,9 +118,15 @@
         <div class="car-wrap rounded ftco-animate stint-card"
              data-id="{{ stint.id }}">
 
-            <div class="img rounded d-flex align-items-end"
-                 style="background-image: url(/static/img/car-1.jpg);">
-            </div>
+              <div class="img rounded d-flex align-items-end position-relative"
+                  style="background-image: url('{{ stint.track_image }}');
+                          background-size: cover;
+                          background-position: center;">
+
+                  <img src="{{ stint.car_image }}"
+                      class="car-overlay">
+
+              </div>
 
             <div class="text">
 

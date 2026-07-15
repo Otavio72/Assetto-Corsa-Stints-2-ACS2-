@@ -10446,3 +10446,18 @@ input:focus{
   max-width: 350px;
   max-height: 350px;
 }
+
+.car-overlay{
+    position:absolute;
+    bottom:0;
+
+    left:50%;
+    transform:translateX(-50%);
+
+    width:90%;
+    max-height:70%;
+
+    object-fit:contain;
+
+    pointer-events:none;
+}
